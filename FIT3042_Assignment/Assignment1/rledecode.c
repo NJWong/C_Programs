@@ -1,52 +1,95 @@
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+/*
+    Check for the existance of a 'rleplay' file inside the 'rlefiles' folder.
+
+    Assumptions:
+        * The size of a 'rleplay' is < 2GB since stat() has documented problems in this case
+
+    Input: Name of the 'rleplay' file
+    Output: 1 if the file exists, 0 otherwise
+*/
+int rleplay_file_exists(char *filename) {
+    struct stat buffer;
+    return (stat (filename, &buffer) == 0);
+}
 
 /*
 	Parses the command line argument list and executes appropriate functions.
 
-	Input: The commend line argument list
+    Assumptions:
+        * argv[1] will always be the rlepaly filename
+        * argv[2] will always either be '-' or '<prefix>'
+            - if one is used, the other cannot be used at the same time      
+        * argv[3] can either be '--scale <scalefactor>' or '-tween <tweenfactor>'
+        * argv[4] can either be '--scale <scalefactor>' or '-tween <tweenfactor>'
+            - if argv[3] is one of these, then argv[4] must be the other
+
+	Input: argc - the length of the command line argument list
+           argv - The commend line argument list
 	Output: Nothing. Output is handled by appropriate functions
 */
 void parse_arguments(int argc, char **argv) {
 
-    for (int index = 0; index < argc; index++) {
-        printf("argument %d : %s\n", index, argv[index]);
+    // handle argv[1]
+    char *rleplay_folder = "rlefiles/";
+    char *filename = argv[1];
+
+    char *path = (char *) malloc(1 + strlen(rleplay_folder) + strlen(filename));
+    strcpy(path, rleplay_folder);
+    strcat(path, filename);
+
+    printf("Looking for %s...\n", path);
+
+    if (rleplay_file_exists(path)) {
+        printf("%s exists. Proceeding...\n", path);
+    } else {
+        printf("%s does not exist. Exiting cleanly.\n", path);
+        exit(EXIT_SUCCESS);
     }
+    
+    // handle argv[2]
+    if (!strcmp(argv[2], "-")) {
+        printf("dash\n");
+    } else {
+        printf("other\n");
+    }
+
+    // handle argv[3]
+
+        // handle argv[4]    
 }
 
-int has_correct_number_of_args(argc) {
-    return (argc <= 5 && argc >= 3); // argv[0] is './rledecode'
+/*
+    Check there are the correct number of arguments.
+    There are two required arguments, and two optional arguments for rledecode.
+    
+    Input: the length of argv - the argument list
+    Output: 1 if there are the correct number of arguments, 0 otherwise
+*/
+int correct_number_of_args(argc) {
+    // Remember: argv[0] is './rledecode'
+    return (argc <= 5 && argc >= 3);
 }
 
 /*
 	Program entry point
+
+    Assumptions:
+        * 
 */
 int main(int argc, char **argv) {
 
-    if (has_correct_number_of_args(argc))
+    if (correct_number_of_args(argc))
         parse_arguments(argc, argv);
     else
         printf("Incorrect number of arguments: %d.\n", argc);
 
     return 0;
-}
-
-/*
-	Check for the existance of a file.
-
-	Input: Name of the 'rleplay' file
-	Output: 1 if the file exists, 0 if it does not
-*/
-int rleplay_file_exists() {
-	int exists;
-
-    // dummy code
-    exists = 1;
-
-	return exists;
 }
 
 void convert_to_ppm() {
