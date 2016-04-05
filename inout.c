@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-
 /* Version 1 */
 /*
 int main() {
@@ -17,6 +16,9 @@ int main() {
 }
 */
 
+void exercise1();
+void exercise2();
+
 /* Version 2 */
 /*
 	Any assignment such as 'c = getchar()' is an expression and has a value.
@@ -25,7 +27,7 @@ int main() {
 	a higher precedence.
 
 	Note:
-	
+
 	'c = getchar() != EOF'
 
 	is equivalent to
@@ -35,10 +37,36 @@ int main() {
 	which will set 'c' to either 1 or 0 depending on if it encounters end of file.
 */
 int main() {
+	printf("--- START main ---\n");
 	int c;
-
 	while((c = getchar()) != EOF) {
 		putchar(c);
 	}
+
+	exercise1();
+	exercise2();
+
+	printf("--- END main ---\n");
 }
 
+/* Exercise 1 - Verify that the expression 'getchar() != EOF' is 0 or 1 */
+void exercise1() {
+	printf("--- START exercise1 ---\n");
+
+	int c;
+	if (c = (getchar() == EOF)) {
+		// will print 1 when main the while loop in main reaches end of file.
+		printf("value of c: %d\n", c);
+	}
+
+	printf("--- END exercise1 ---\n");
+}
+
+/* Exercise 2 - Print the value of EOF */
+void exercise2() {
+	printf("--- START exercise2 ---\n");
+
+	printf("value of EOF: %d\n", EOF);
+
+	printf("--- END exercise2 ---\n");
+}
