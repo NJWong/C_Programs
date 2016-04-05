@@ -19,6 +19,61 @@ int rleplay_file_exists(char *filename) {
 }
 
 /*
+    Determines if the filename from the first command line argument exists.
+*/
+void handle_arg1(char *filename) {
+
+    // Setup
+    char *rleplay_folder = "rlefiles/";
+
+    char *path = (char *) malloc(1 + strlen(rleplay_folder) + strlen(filename));
+    strcpy(path, rleplay_folder);
+    strcat(path, filename);
+
+    printf("Looking for %s...\n", path);
+
+    if (rleplay_file_exists(path)) {
+        printf("%s exists. Proceeding...\n", path);
+    } else {
+        printf("%s does not exist. Exiting cleanly.\n", path);
+        exit(EXIT_SUCCESS);
+    }
+
+    // Cleanup
+    free(path);
+}
+
+void output_to_files() {
+    printf("output to files\n");
+}
+
+void output_to_stdout() {
+    printf("output to stdout\n");
+}
+
+int is_valid_prefix(char *prefix) {
+    return 1;
+}
+
+void handle_arg2(char *arg2) {
+    if (!strcmp(arg2, "-")) {
+        output_to_stdout();
+    } else if (is_valid_prefix(arg2)) {
+        output_to_files();
+    } else {
+        printf("invalid value for arg2\n");
+    }
+}
+
+void handle_arg3() {
+
+}
+
+void handle_arg4() {
+
+}
+
+/*
 	Parses the command line argument list and executes appropriate functions.
 
     Assumptions:
@@ -35,33 +90,20 @@ int rleplay_file_exists(char *filename) {
 */
 void parse_arguments(int argc, char **argv) {
 
-    // handle argv[1]
-    char *rleplay_folder = "rlefiles/";
-    char *filename = argv[1];
+    // Check if 'rleplay' file exists
+    handle_arg1(argv[1]);
 
-    char *path = (char *) malloc(1 + strlen(rleplay_folder) + strlen(filename));
-    strcpy(path, rleplay_folder);
-    strcat(path, filename);
+    // Determine which output method to use
+    handle_arg2(argv[2]);
 
-    printf("Looking for %s...\n", path);
+    // Handle optional arguments
+    if (argc == 4) {        // at least one optional arg
+        handle_arg3();
 
-    if (rleplay_file_exists(path)) {
-        printf("%s exists. Proceeding...\n", path);
-    } else {
-        printf("%s does not exist. Exiting cleanly.\n", path);
-        exit(EXIT_SUCCESS);
+        if (argc == 5) {    // both optional args
+            handle_arg4();
+        }
     }
-    
-    // handle argv[2]
-    if (!strcmp(argv[2], "-")) {
-        printf("dash\n");
-    } else {
-        printf("other\n");
-    }
-
-    // handle argv[3]
-
-        // handle argv[4]    
 }
 
 /*
@@ -93,14 +135,6 @@ int main(int argc, char **argv) {
 }
 
 void convert_to_ppm() {
-
-}
-
-void output_to_files() {
-
-}
-
-void output_to_stdout() {
 
 }
 
