@@ -31,7 +31,11 @@ int parse_arguments(int argc, char **argv) {
 
     // Determine which output method to use
     arg2_flag = handle_arg2(argv[2]);
-    if (arg2_flag == -1) {
+    if (arg2_flag == 1) {
+        output_to_stdout();
+    } else if (arg2_flag == 2) {
+        output_to_files();
+    } else if (arg2_flag == -1) {
         printf("Argument 2 Error.\n");
         return -1;
     }
@@ -49,6 +53,14 @@ int parse_arguments(int argc, char **argv) {
         }
     }
     return 0;
+}
+
+void output_to_stdout() {
+    printf("Output: to stdout...\n");
+}
+
+void output_to_files() {
+    printf("Output: to files...\n");
 }
 
 /* Handler and methods for argv[1] */
@@ -119,25 +131,18 @@ int rleplay_file_exists(char *filename) {
 /* Handler and methods for argv[2] */
 int handle_arg2(char *arg2) {
     if (strcmp(arg2, "-") == 0) {
-        output_to_stdout();
+        return 1;
     } else if (is_valid_prefix(arg2)) {
-        output_to_files();
+        return 2;
     } else {
-        printf("invalid value for arg2\n");
+        printf("Invalid value for arg2\n");
+        return -1;
     }
     return 0;
 }
 
 int is_valid_prefix(char *prefix) {
     return (strlen(prefix) > 0);
-}
-
-void output_to_stdout() {
-    printf("Output: to stdout...\n");
-}
-
-void output_to_files() {
-    printf("Output: to files...\n");
 }
 
 /* Handler and methods for argv[3] */
