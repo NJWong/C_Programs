@@ -10,6 +10,7 @@ int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
 /*
     Parses the command line argument list and executes appropriate functions.
 
+
     Assumptions:
         * argv[1] will always be the rlepaly filename
         * argv[2] will always either be '-' or '<prefix>'
@@ -22,22 +23,29 @@ int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
            argv - The commend line argument list
     Output: 0 on success, -1 on failure
 */
-int parse_arguments(int argc, char **argv) {
+int parse_arguments(int argc, char **argv)
+{
 
     // Check if 'rleplay' file exists
     arg1_flag = handle_arg1(argv[1]);
-    if (arg1_flag == -1) {
+    if (arg1_flag == -1)
+    {
         printf("Argument 1 Error.\n");
         return -1;
     }
 
     // Determine which output method to use
     arg2_flag = handle_arg2(argv[2]);
-    if (arg2_flag == 1) {
+    if (arg2_flag == 1)
+    {
         output_to_stdout();
-    } else if (arg2_flag == 2) {
+    }
+    else if (arg2_flag == 2)
+    {
         output_to_files();
-    } else if (arg2_flag == -1) {
+    }
+    else if (arg2_flag == -1)
+    {
         printf("Argument 2 Error.\n");
         return -1;
     }
@@ -47,25 +55,30 @@ int parse_arguments(int argc, char **argv) {
     arg4_flag = 0;
 
     // Handle optional arguments
-    if (argc == 4) {        // at least one optional arg
+    if (argc == 4)
+    {        // at least one optional arg
         handle_arg3(argv[3]);
 
-        if (argc == 5) {    // both optional args
+        if (argc == 5)
+        {    // both optional args
             handle_arg4(argv[4]);
         }
     }
     return 0;
 }
 
-int decode_rlefile(FILE *infile, FILE *outfile) {
-    
+int decode_rlefile(FILE *infile, FILE *outfile)
+{
+    return 0;
 }
 
-void output_to_stdout() {
+void output_to_stdout()
+{
     printf("Output: to stdout...\n");
 }
 
-void output_to_files() {
+void output_to_files()
+{
     printf("Output: to files...\n");
 }
 
@@ -74,21 +87,26 @@ void output_to_files() {
 /*
     Determines if the filename from the first command line argument exists.
 */
-int handle_arg1(char *filename) {
+int handle_arg1(char *filename)
+{
     // Setup
     // TODO check this - it is dangerous to assume that rleplay files will be in this folder
     char *path = create_path("rlefiles/", filename);
 
-    if (strcmp(path, "NullError") == 0) {
+    if (strcmp(path, "NullError") == 0)
+    {
         printf("Error: Either folder or filename is NULL. Exiting cleanly.\n");
         return -1;
     }
 
     printf("Looking for %s...\n", path);
 
-    if (rleplay_file_exists(path)) {
+    if (rleplay_file_exists(path))
+    {
         printf("%s exists. Proceeding...\n", path);
-    } else {
+    }
+    else
+    {
         printf("%s does not exist.\n", path);
         return -1;
     }
@@ -98,8 +116,10 @@ int handle_arg1(char *filename) {
     return 0;
 }
 
-char * create_path(char *folder, char *filename) {
-    if (folder == NULL || filename == NULL) {
+char * create_path(char *folder, char *filename)
+{
+    if (folder == NULL || filename == NULL)
+    {
         return "NullError";
     }
 
@@ -107,10 +127,13 @@ char * create_path(char *folder, char *filename) {
     char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
 
     // Another NULL test can't hurt
-    if (path == NULL) {
+    if (path == NULL)
+    {
         printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
         exit(EXIT_SUCCESS);
-    } else {
+    }
+    else
+    {
         strcpy(path, folder);
         strcat(path, filename);
         return path;
@@ -126,37 +149,49 @@ char * create_path(char *folder, char *filename) {
     Input: Name of the 'rleplay' file
     Output: 1 if the file exists, 0 otherwise
 */
-int rleplay_file_exists(char *filename) {
+int rleplay_file_exists(char *filename)
+{
     struct stat buffer;
-    if (filename != NULL) {
+    if (filename != NULL)
+    {
         return (stat (filename, &buffer) >= 0); // stat returns a negative value on failure
     }
     return -1; // return as if stat had failed
 }
 
 /* Handler and methods for argv[2] */
-int handle_arg2(char *arg2) {
-    if (strcmp(arg2, "-") == 0) {
+int handle_arg2(char *arg2)
+{
+    if (strcmp(arg2, "-") == 0)
+    {
         return 1;
-    } else if (is_valid_prefix(arg2)) {
+    }
+    else if (is_valid_prefix(arg2))
+    {
         return 2;
-    } else {
+    }
+    else
+    {
         printf("Invalid value for arg2\n");
         return -1;
     }
+
     return 0;
 }
 
-int is_valid_prefix(char *prefix) {
+int is_valid_prefix(char *prefix)
+{
     return (strlen(prefix) > 0);
 }
 
 /* Handler and methods for argv[3] */
-int handle_arg3(char *arg3) {
+int handle_arg3(char *arg3)
+{
     return 0;
 }
 
 /* Handler and methods for argv[4] */
-int handle_arg4(char *arg4) {
+int handle_arg4(char *arg4)
+{
     return 0;
 }
