@@ -14,23 +14,31 @@ static char * create_path_test1() {
 
 static char * create_path_test2() {
     char *path = create_path("testfolder/", "testfile");
-    mu_assert("Error: create_path_test2\n", strcmp(path, "folder/file") == 0);
+    mu_assert("Error: create_path_test2\n", strcmp(path, "folder/file") != 0);
     return 0;
 }
 
-static char * test_all_create_path() {
-    mu_run_test(create_path_test1);
-    mu_run_test(create_path_test2);
+static char * create_path_test3() {
+    mu_assert("Error: create_path_test3\n", create_path("folder/", NULL) == "NullError");
     return 0;
 }
 
-static char * test_all_handle_arg1() {
-    test_all_create_path();
+static char * create_path_test4() {
+    mu_assert("Error: create_path_test4\n", create_path(NULL, "file") == "NullError");
+    return 0;
+}
+
+static char * rleplay_file_exists_test1() {
+    FILE *fp = fopen("tests/test1.rle", "ab+");
     return 0;
 }
 
 static char * all_tests() {
-    test_all_handle_arg1();
+    mu_run_test(create_path_test1);
+    mu_run_test(create_path_test2);
+    mu_run_test(create_path_test3);
+    mu_run_test(create_path_test4);
+    mu_run_test(rleplay_file_exists_test1);
     return 0;
 }
 

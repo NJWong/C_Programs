@@ -6,7 +6,7 @@ all: clean_bins rledecode
 rledecode: rledecode.c
 	$(CC) $(CFLAGS) -o rledecode rledecode.c arg_parser.c
 
-test: arg_parser_test
+test: clean_tests arg_parser_test
 
 arg_parser_test: tests/arg_parser_test.c
 	# $(CC) $(CFLAGS) -o arg_parser arg_parser.c
@@ -21,3 +21,4 @@ clean_bins:
 # Clean up compiled output files for unit test files
 clean_tests:
 	$(RM) tests/arg_parser_test
+	$(RM) tests/*.rle

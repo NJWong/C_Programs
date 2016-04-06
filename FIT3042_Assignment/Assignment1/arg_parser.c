@@ -46,12 +46,18 @@ void parse_arguments(int argc, char **argv) {
 void handle_arg1(char *filename) {
     // Setup
     char *path = create_path("rlefiles/", filename);
+
+    if (strcmp(path, "NullError") == 0) {
+        printf("Error: Either folder or filename is NULL. Exiting cleanly.\n");
+        exit(EXIT_SUCCESS);
+    }
+
     printf("Looking for %s...\n", path);
 
     if (rleplay_file_exists(path)) {
         printf("%s exists. Proceeding...\n", path);
     } else {
-        printf("%s does not exist. Exiting cleanly.\n", path);
+        printf("Error: %s does not exist. Exiting cleanly.\n", path);
         exit(EXIT_SUCCESS);
     }
     // Cleanup
@@ -59,11 +65,22 @@ void handle_arg1(char *filename) {
 }
 
 char * create_path(char *folder, char *filename) {
-    // TODO a null check for this malloc
+    if (folder == NULL || filename == NULL) {
+        return "NullError";
+    }
+
+    // TODO maybe do the malloc and NULL check in a reusable method
     char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
-    strcpy(path, folder);
-    strcat(path, filename);
-    return path;
+
+    // Another NULL test can't hurt
+    if (path == NULL) {
+        printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
+        exit(EXIT_SUCCESS);
+    } else {
+        strcpy(path, folder);
+        strcat(path, filename);
+        return path;
+    }
 }
 
 /*
