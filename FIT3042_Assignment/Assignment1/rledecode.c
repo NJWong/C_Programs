@@ -3,6 +3,7 @@
 // #include "arg_parser.c"
 #include <arg_parser.h>
 
+int validate_args(int argc, char **argv);
 int correct_number_of_args(int argc);
 void exit_program();
 
@@ -11,6 +12,14 @@ void exit_program();
 */
 int main(int argc, char **argv) {
     printf("--- START rledecode ---");
+
+    validate_args(argc, argv);
+
+    printf("--- END rledecode ---");
+    return 0;
+}
+
+int validate_args(int argc, char **argv) {
 
     int pa_flag = 0;
 
@@ -23,7 +32,6 @@ int main(int argc, char **argv) {
         printf("Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
         exit_program();
 
-    printf("--- END rledecode ---");
     return 0;
 }
 
@@ -45,10 +53,6 @@ void exit_program() {
 }
 
 void read_rle_contents() {
-
-}
-
-void convert_to_ppm() {
 
 }
 

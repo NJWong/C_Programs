@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <arg_parser.h>
+
+int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
+
 /*
     Parses the command line argument list and executes appropriate functions.
 
@@ -20,7 +23,6 @@
     Output: 0 on success, -1 on failure
 */
 int parse_arguments(int argc, char **argv) {
-    int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
 
     // Check if 'rleplay' file exists
     arg1_flag = handle_arg1(argv[1]);
@@ -41,8 +43,8 @@ int parse_arguments(int argc, char **argv) {
     }
 
     // TODO remove
-    arg3_flag = 1;
-    arg4_flag = 1;
+    arg3_flag = 0;
+    arg4_flag = 0;
 
     // Handle optional arguments
     if (argc == 4) {        // at least one optional arg
@@ -53,6 +55,10 @@ int parse_arguments(int argc, char **argv) {
         }
     }
     return 0;
+}
+
+int decode_rlefile(FILE *infile, FILE *outfile) {
+    
 }
 
 void output_to_stdout() {
