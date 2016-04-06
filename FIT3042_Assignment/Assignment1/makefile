@@ -3,7 +3,7 @@ CFLAGS = -g -Wall -I.
 
 all: clean_bins rledecode
 
-rledecode: rledecode.c
+rledecode: rledecode.c arg_parser.c
 	$(CC) $(CFLAGS) -o rledecode rledecode.c arg_parser.c
 
 test: clean_tests arg_parser_test

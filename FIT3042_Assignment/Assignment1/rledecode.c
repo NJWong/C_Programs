@@ -27,11 +27,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void exit_program() {
-    printf("Exiting Cleanly.\n");
-    exit(EXIT_SUCCESS);
-}
-
 /*
     Check there are the correct number of arguments.
     There are two required arguments, and two optional arguments for rledecode.
@@ -42,6 +37,11 @@ void exit_program() {
 int correct_number_of_args(argc) {
     // Remember: argv[0] is './rledecode'
     return (argc <= 5 && argc >= 3);
+}
+
+void exit_program() {
+    printf("Exiting Cleanly.\n");
+    exit(EXIT_SUCCESS);
 }
 
 void read_rle_contents() {
