@@ -5,8 +5,6 @@
 #include <sys/stat.h>
 #include <arg_parser.h>
 
-int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
-
 /*
     Parses the command line argument list and executes appropriate functions.
 
@@ -23,10 +21,32 @@ int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
            argv - The commend line argument list
     Output: 0 on success, -1 on failure
 */
+
+int parse_arg(int arg_index, char *arg) {
+
+    switch(arg_index) {
+        case 1:
+            return handle_arg1(arg);
+        case 2:
+            return handle_arg2(arg);
+        case 3:
+            return handle_arg3(arg);
+        case 4:
+            return handle_arg4(arg);
+        default:
+            printf("Error: parse_argument - incorrect arg_index");
+            return -1;
+    }
+}
+
+
+
 int parse_arguments(int argc, char **argv)
 {
 
-    // Check if 'rleplay' file exists
+    int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
+
+    /* Check if 'rleplay' file exists */
     arg1_flag = handle_arg1(argv[1]);
     if (arg1_flag == -1)
     {
@@ -34,7 +54,7 @@ int parse_arguments(int argc, char **argv)
         return -1;
     }
 
-    // Determine which output method to use
+    /* Determine which output method to use */
     arg2_flag = handle_arg2(argv[2]);
     if (arg2_flag == 1)
     {
@@ -54,13 +74,13 @@ int parse_arguments(int argc, char **argv)
     arg3_flag = 0;
     arg4_flag = 0;
 
-    // Handle optional arguments
+    /* Handle optional arguments */
     if (argc == 4)
-    {        // at least one optional arg
+    {        /* at least one optional arg */
         handle_arg3(argv[3]);
 
         if (argc == 5)
-        {    // both optional args
+        {    /* both optional args */
             handle_arg4(argv[4]);
         }
     }
@@ -187,11 +207,13 @@ int is_valid_prefix(char *prefix)
 /* Handler and methods for argv[3] */
 int handle_arg3(char *arg3)
 {
+    printf("handle_arg3");
     return 0;
 }
 
 /* Handler and methods for argv[4] */
 int handle_arg4(char *arg4)
 {
+    printf("handle_arg4");
     return 0;
 }

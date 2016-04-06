@@ -180,6 +180,15 @@ static char * parse_arguments_test6()
     return 0;
 }
 
+static char * parse_arg_test1() {
+    char *filename = "test7.rle";
+    FILE *f = fopen("rlefiles/test7.rle", "ab+");
+    fclose(f);
+
+    mu_assert("\nError: parse_arg_test1\n", parse_arg(1, filename) == 0);
+    return 0;
+}
+
 static char * all_tests()
 {
     mu_run_test(create_path_test1);
@@ -202,6 +211,7 @@ static char * all_tests()
     mu_run_test(parse_arguments_test4);
     mu_run_test(parse_arguments_test5);
     mu_run_test(parse_arguments_test6);
+    mu_run_test(parse_arg_test1);
     return 0;
 }
 
@@ -218,7 +228,7 @@ int main(int argc, char **argv)
     {
         printf("\nALL TESTS PASSED\n");
     }
-    
+
     printf("Tests run: %d\n", tests_run);
     printf("--- END arg_parser_test ---\n");
 
