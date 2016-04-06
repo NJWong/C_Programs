@@ -29,9 +29,19 @@ static char * create_path_test4() {
 }
 
 static char * rleplay_file_exists_test1() {
-    FILE *fp = fopen("tests/test1.rle", "ab+");
+    char *path = "tests/test1.rle";
+    FILE *fp = fopen(path, "ab+");
+    fclose(fp);
+    mu_assert("Error: rleplay_file_exists_test1\n", rleplay_file_exists(path) == 1);
     return 0;
 }
+
+static char * rleplay_file_exists_test2() {
+    char *path = "tests/nothing.rle";
+    mu_assert("Error: rleplay_file_exists_test2\n", rleplay_file_exists(path) != 1);
+    return 0;
+}
+
 
 static char * all_tests() {
     mu_run_test(create_path_test1);
@@ -39,6 +49,7 @@ static char * all_tests() {
     mu_run_test(create_path_test3);
     mu_run_test(create_path_test4);
     mu_run_test(rleplay_file_exists_test1);
+    mu_run_test(rleplay_file_exists_test2);
     return 0;
 }
 

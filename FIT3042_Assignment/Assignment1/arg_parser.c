@@ -94,7 +94,7 @@ char * create_path(char *folder, char *filename) {
 */
 int rleplay_file_exists(char *filename) {
     struct stat buffer;
-    return (stat (filename, &buffer) == 0);
+    return (stat (filename, &buffer) >= 0); // stat returns a negative value if 'filename' does not exist
 }
 
 /* Handler and methods for argv[2] */
