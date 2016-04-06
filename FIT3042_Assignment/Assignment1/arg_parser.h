@@ -7,3 +7,4 @@ void handle_arg4(char *arg4);
 void output_to_files();
 void output_to_stdout();
 int is_valid_prefix(char *prefix);
+char * create_path(char *folder, char *filename);

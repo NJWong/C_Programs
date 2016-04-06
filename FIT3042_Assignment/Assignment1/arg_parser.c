@@ -45,11 +45,7 @@ void parse_arguments(int argc, char **argv) {
 */
 void handle_arg1(char *filename) {
     // Setup
-    char *rleplay_folder = "rlefiles/";
-    char *path = (char *) malloc(1 + strlen(rleplay_folder) + strlen(filename));
-    strcpy(path, rleplay_folder);
-    strcat(path, filename);
-
+    char *path = create_path("rlefiles/", filename);
     printf("Looking for %s...\n", path);
 
     if (rleplay_file_exists(path)) {
@@ -60,6 +56,14 @@ void handle_arg1(char *filename) {
     }
     // Cleanup
     free(path);
+}
+
+char * create_path(char *folder, char *filename) {
+    // TODO a null check for this malloc
+    char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
+    strcpy(path, folder);
+    strcat(path, filename);
+    return path;
 }
 
 /*
@@ -78,7 +82,7 @@ int rleplay_file_exists(char *filename) {
 
 /* Handler and methods for argv[2] */
 void handle_arg2(char *arg2) {
-    if (!strcmp(arg2, "-")) {
+    if (strcmp(arg2, "-") == 0) {
         output_to_stdout();
     } else if (is_valid_prefix(arg2)) {
         output_to_files();
