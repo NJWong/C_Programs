@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <arg_parser.h>
-
 /*
     Parses the command line argument list and executes appropriate functions.
 
@@ -18,15 +17,28 @@
 
     Input: argc - the length of the command line argument list
            argv - The commend line argument list
-    Output: Nothing. Output is handled by appropriate functions
+    Output: 0 on success, -1 on failure
 */
-void parse_arguments(int argc, char **argv) {
+int parse_arguments(int argc, char **argv) {
+    int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
 
     // Check if 'rleplay' file exists
-    handle_arg1(argv[1]);
+    arg1_flag = handle_arg1(argv[1]);
+    if (arg1_flag == -1) {
+        printf("Argument 1 Error.\n");
+        return -1;
+    }
 
     // Determine which output method to use
-    handle_arg2(argv[2]);
+    arg2_flag = handle_arg2(argv[2]);
+    if (arg2_flag == -1) {
+        printf("Argument 2 Error.\n");
+        return -1;
+    }
+
+    // TODO remove
+    arg3_flag = 1;
+    arg4_flag = 1;
 
     // Handle optional arguments
     if (argc == 4) {        // at least one optional arg
@@ -36,20 +48,22 @@ void parse_arguments(int argc, char **argv) {
             handle_arg4(argv[4]);
         }
     }
+    return 0;
 }
 
-/* Handler and methods for argv[3] */
+/* Handler and methods for argv[1] */
 
 /*
     Determines if the filename from the first command line argument exists.
 */
-void handle_arg1(char *filename) {
+int handle_arg1(char *filename) {
     // Setup
+    // TODO check this - it is dangerous to assume that rleplay files will be in this folder
     char *path = create_path("rlefiles/", filename);
 
     if (strcmp(path, "NullError") == 0) {
         printf("Error: Either folder or filename is NULL. Exiting cleanly.\n");
-        exit(EXIT_SUCCESS);
+        return -1;
     }
 
     printf("Looking for %s...\n", path);
@@ -57,11 +71,13 @@ void handle_arg1(char *filename) {
     if (rleplay_file_exists(path)) {
         printf("%s exists. Proceeding...\n", path);
     } else {
-        printf("Error: %s does not exist. Exiting cleanly.\n", path);
-        exit(EXIT_SUCCESS);
+        printf("%s does not exist.\n", path);
+        return -1;
     }
     // Cleanup
     free(path);
+
+    return 0;
 }
 
 char * create_path(char *folder, char *filename) {
@@ -94,11 +110,14 @@ char * create_path(char *folder, char *filename) {
 */
 int rleplay_file_exists(char *filename) {
     struct stat buffer;
-    return (stat (filename, &buffer) >= 0); // stat returns a negative value if 'filename' does not exist
+    if (filename != NULL) {
+        return (stat (filename, &buffer) >= 0); // stat returns a negative value on failure
+    }
+    return -1; // return as if stat had failed
 }
 
 /* Handler and methods for argv[2] */
-void handle_arg2(char *arg2) {
+int handle_arg2(char *arg2) {
     if (strcmp(arg2, "-") == 0) {
         output_to_stdout();
     } else if (is_valid_prefix(arg2)) {
@@ -106,26 +125,27 @@ void handle_arg2(char *arg2) {
     } else {
         printf("invalid value for arg2\n");
     }
+    return 0;
 }
 
 int is_valid_prefix(char *prefix) {
-    return 1;
-}
-
-void output_to_files() {
-    printf("Output: to files\n");
+    return (strlen(prefix) > 0);
 }
 
 void output_to_stdout() {
-    printf("output to stdout\n");
+    printf("Output: to stdout...\n");
+}
+
+void output_to_files() {
+    printf("Output: to files...\n");
 }
 
 /* Handler and methods for argv[3] */
-void handle_arg3(char *arg3) {
-
+int handle_arg3(char *arg3) {
+    return 0;
 }
 
 /* Handler and methods for argv[4] */
-void handle_arg4(char *arg4) {
-
+int handle_arg4(char *arg4) {
+    return 0;
 }
