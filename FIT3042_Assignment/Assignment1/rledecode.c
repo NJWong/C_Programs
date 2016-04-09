@@ -10,11 +10,10 @@ void exit_program();
 /* Entry point */
 int main(int argc, char **argv)
 {
-    printf("--- START rledecode ---");
+    printf("--- Starting rledecode ---\n");
 
     validate_args(argc, argv);
 
-    printf("--- END rledecode ---");
     return 0;
 }
 
@@ -24,7 +23,8 @@ int validate_args(int argc, char **argv)
 
     if (correct_number_of_args(argc))
     {
-        pa_flag = parse_arguments(argc, argv);
+        // pa_flag = parse_arguments(argc, argv);
+        pa_flag = parse_arg(1, argv[1]);
         if (pa_flag == -1)
         {
             exit_program();

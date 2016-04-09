@@ -1,3 +1,4 @@
+int parse_arg(int arg_index, char *arg);
 int parse_arguments(int argc, char **argv);
 int rleplay_file_exists(char *filename);
 int handle_arg1(char *filename);
