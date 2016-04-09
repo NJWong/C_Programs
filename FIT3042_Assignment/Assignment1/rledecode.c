@@ -5,6 +5,13 @@
 #include <sys/stat.h>
 #include "rledecode.h"
 
+#define MIN_RUN     3                   /* minimum run length to encode */
+#define MAX_RUN     (128 + MIN_RUN - 1) /* maximum run length to encode */
+#define MAX_COPY    128                 /* maximum characters to copy */
+
+/* maximum that can be read before copy block is written */
+#define MAX_READ    (MAX_COPY + MIN_RUN - 1)
+
 int rledecode(int argc, char **argv)
 {
     fprintf(stderr, "\n--- Starting rledecode ---\n");
@@ -28,11 +35,142 @@ int rledecode(int argc, char **argv)
 void decode_to_stdout(int argc, char **argv)
 {
     fprintf(stderr, "decode_to_stdout\n");
+
+    FILE *rlefile = NULL;
+
+    /* Open the file */
+    rlefile = fopen(argv[1], "r");
+
+    /* Check for NULL pointer */
+    if (rlefile == NULL)
+    {
+        fprintf(stderr, "Can't open file: %s. Does not exist\n", argv[1]);
+    }
+
+    // int currChar;                       /* current characters */
+    int prevChar;                       /* previous characters */
+    // unsigned char count;                /* number of characters in a run */
+
+    /* decode inFile */
+    prevChar = EOF;     /* force next char to be different */
+
+
+    char *width_string = (char*) malloc(5*sizeof(char));
+    char *height_string = (char*) malloc(5*sizeof(char));
+    int count = 0;
+
+    while (count < 3)
+    {
+        char line[10];
+        fgets(line, sizeof line, rlefile);
+        if (count == 2)
+        {
+            strncpy(width_string, line, 4);
+            width_string[4] = '\0';
+            strncpy(height_string, &line[5], 4);
+            height_string[4] = '\0';
+        }
+        count++;
+    }
+
+    int width = atoi(width_string);
+    int height = atoi(height_string);
+    int image_pixels = width * height;
+    printf("width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
+
+    free(width_string);
+    free(height_string);
+
+
+    /* read input until there's nothing left */
+    // while ((currChar = fgetc(rlefile)) != EOF)
+    // {
+    //     // printf("%d", currChar);
+
+    //     /* check for run */
+    //     if (currChar == prevChar)
+    //     {
+    //         /* we have a run.  write it out. */
+    //         count = fgetc(rlefile);
+    //         while (count > 0)
+    //         {
+    //             // printf("%d", currChar);
+    //             count--;
+    //         }
+
+    //         prevChar = EOF;     /* force next char to be different */
+    //     }
+    //     else
+    //     {
+    //         /* no run */
+    //         prevChar = currChar;
+    //     }
+    // }
+
+
+    // int countChar;
+    // int currChar;
+
+    // while ((countChar = fgetc(rlefile)) != EOF)
+    // {
+    //     countChar = (char)countChar;
+
+    //     if (countChar < 0)
+    //     {
+    //         countChar = (MIN_RUN - 1) - countChar;
+
+    //         if (EOF == (currChar = fgetc(rlefile)))
+    //         {
+    //             fprintf(stderr, "Run block is too short\n");
+    //             countChar = 0;
+    //         }
+
+    //         while (countChar > 0)
+    //         {
+    //             fputc(currChar, outFile);
+    //             // fprintf(stdout, "%c", currChar);
+    //             countChar--;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         for (countChar++; countChar > 0; countChar--)
+    //         {
+    //             if ((currChar = fgetc(rlefile)) != EOF)
+    //             {
+    //                 fputc(currChar, outFile);
+    //                 // fprintf(stdout, "%c", currChar);
+    //             }
+    //             else
+    //             {
+    //                 fprintf(stderr, "Copy block is too short\n");
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // char line[100];
+    // fgets( line, 100, rlefile);
+    // printf("The line is: %s\n", line);
+    // fgets( line, 100, rlefile);
+    // printf("The line is: %s\n", line);
+    // while ( fgets( line, 100, rlefile ) != NULL ) 
+    // { 
+    //     printf("The line is: %s\n", line); 
+    // } 
+
+    /* Close the file */
+    fclose(rlefile);
+
+    // return 0;
 }
 
 void decode_to_ppm_files(int argc, char **argv)
 {
     fprintf(stderr, "decode_to_ppm_files\n");
+
+    // FILE *outFile = fopen("testout.ppm", "wb");
 }
 
 int validate_args(int argc, char **argv)
@@ -77,7 +215,7 @@ int parse_arg(int arg_index, char *arg) {
             flag = handle_arg4(arg);
             break;
         default:
-            printf("Error: parse_argument - incorrect arg_index");
+            fprintf(stderr, "Error: parse_argument - incorrect arg_index");
             break;
     }
 
@@ -92,15 +230,15 @@ int handle_arg1(char *filepath)
     }
 
     // Not assuming rle files are within the 'rlefiles' directory
-    printf("Looking for %s...\n", filepath);
+    fprintf(stderr, "Looking for %s...\n", filepath);
 
     if (rleplay_file_exists(filepath))
     {
-        printf("%s exists. Proceeding...\n", filepath);
+        fprintf(stderr, "%s exists. Proceeding...\n", filepath);
     }
     else
     {
-        printf("%s does not exist.\n", filepath);
+        fprintf(stderr, "%s does not exist.\n", filepath);
         return -1; // it seems 'return -1' gives a SegFault
     }    
 
@@ -130,7 +268,7 @@ int handle_arg2(char *arg2)
     }
     else
     {
-        printf("Invalid value for arg2\n");
+        fprintf(stderr, "Invalid value for arg2\n");
         return -1;
     }
 
@@ -145,14 +283,14 @@ int is_valid_prefix(char *prefix)
 /* Handler and methods for argv[3] */
 int handle_arg3(char *arg3)
 {
-    printf("handle_arg3");
+    fprintf(stderr, "handle_arg3");
     return 0;
 }
 
 /* Handler and methods for argv[4] */
 int handle_arg4(char *arg4)
 {
-    printf("handle_arg4");
+    fprintf(stderr, "handle_arg4");
     return 0;
 }
 
