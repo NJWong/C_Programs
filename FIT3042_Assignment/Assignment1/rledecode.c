@@ -7,13 +7,32 @@
 
 int rledecode(int argc, char **argv)
 {
-    fprintf(stderr, "--- Starting rledecode ---\n");
+    fprintf(stderr, "\n--- Starting rledecode ---\n");
 
-    if (validate_args(argc, argv) != 1) {
+    /* Check that the commandline arguments are valid */
+    if (validate_args(argc, argv) != 1)
+    {
         fprintf(stderr, "Args are not valid.\n");
         return -1;
     }
+
+    /* Decode the .rle file and put to output defined in arg2 */
+    if ((strcmp(argv[2], "-") == 0))
+        decode_to_stdout(argc, argv);
+    else
+        decode_to_ppm_files(argc, argv);
+
     return 0;
+}
+
+void decode_to_stdout(int argc, char **argv)
+{
+    fprintf(stderr, "decode_to_stdout\n");
+}
+
+void decode_to_ppm_files(int argc, char **argv)
+{
+    fprintf(stderr, "decode_to_ppm_files\n");
 }
 
 int validate_args(int argc, char **argv)
