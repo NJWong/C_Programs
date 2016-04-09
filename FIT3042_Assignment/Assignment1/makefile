@@ -3,10 +3,10 @@ CFLAGS = -g -Wall -I.
 
 all: clean_bins rledecode
 
-rledecode: arg_parser.c rledecode.c driver.c 
-	$(CC) $(CFLAGS) -o rledecode arg_parser.c rledecode.c driver.c
+rledecode: rledecode.c driver.c 
+	$(CC) $(CFLAGS) -o rledecode rledecode.c driver.c
 
-test: clean_tests arg_parser_test rledecode_test
+test: clean_tests rledecode_test
 
 arg_parser_test: tests/arg_parser_test.c
 	$(CC) $(CFLAGS) -o tests/arg_parser_test tests/arg_parser_test.c

@@ -58,7 +58,7 @@ static char * rledecode_test4()
     argv[1] = "invalid_filename.rle";
     argv[2] = "valid_prefix";
 
-    mu_assert("\nError: rledecode_test4\n", rledecode(argc, argv) == 0);
+    mu_assert("\nError: rledecode_test4\n", rledecode(argc, argv) != 0);
     return 0;
 }
 
@@ -70,9 +70,9 @@ static char * rledecode_test5()
 
     argv[0] = "./rledecode";
     argv[1] = "valid_filename.rle";
-    argv[2] = "invalid_prefix";
+    argv[2] = "";
 
-    mu_assert("\nError: rledecode_test5\n", rledecode(argc, argv) == 0);
+    mu_assert("\nError: rledecode_test5\n", rledecode(argc, argv) != 0);
     return 0;
 }
 
@@ -84,9 +84,9 @@ static char * rledecode_test6()
 
     argv[0] = "./rledecode";
     argv[1] = "invalid_filename.rle";
-    argv[2] = "invalid_prefix";
+    argv[2] = "";
 
-    mu_assert("\nError: rledecode_test6\n", rledecode(argc, argv) == 0);
+    mu_assert("\nError: rledecode_test6\n", rledecode(argc, argv) != 0);
     return 0;
 }
 
@@ -105,6 +105,10 @@ static char * all_tests()
 int main(int argc, char **argv)
 {
     printf("--- START rledecode_test ---\n");
+    
+    FILE *fp = fopen("valid_filename.rle", "ab+");
+    fclose(fp);
+
     char *result = all_tests();
     if (result != 0)
     {
