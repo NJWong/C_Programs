@@ -5,18 +5,6 @@
 #include <sys/stat.h>
 #include "arg_parser.h"
 
-int parse_arg(int arg_index, char *arg);
-int parse_arguments(int argc, char **argv);
-int rleplay_file_exists(char *filename);
-int handle_arg1(char *filename);
-int handle_arg2(char *arg2);
-int handle_arg3(char *arg3);
-int handle_arg4(char *arg4);
-void output_to_files();
-void output_to_stdout();
-int is_valid_prefix(char *prefix);
-char * create_path(char *folder, char *filename);
-
 /*
     Parses the command line argument list and executes appropriate functions.
 
@@ -143,93 +131,93 @@ int handle_arg4(char *arg4)
 /* BELOW IS OUT OF DATE CODE */
 
 
-int parse_arguments(int argc, char **argv)
-{
+// int parse_arguments(int argc, char **argv)
+// {
 
-    int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
+//     int arg1_flag, arg2_flag, arg3_flag, arg4_flag;
 
-    /* Check if 'rleplay' file exists */
-    arg1_flag = handle_arg1(argv[1]);
-    if (arg1_flag == -1)
-    {
-        printf("Argument 1 Error.\n");
-        return -1;
-    }
+//     /* Check if 'rleplay' file exists */
+//     arg1_flag = handle_arg1(argv[1]);
+//     if (arg1_flag == -1)
+//     {
+//         printf("Argument 1 Error.\n");
+//         return -1;
+//     }
 
-    /* Determine which output method to use */
-    arg2_flag = handle_arg2(argv[2]);
-    if (arg2_flag == 1)
-    {
-        output_to_stdout();
-    }
-    else if (arg2_flag == 2)
-    {
-        output_to_files();
-    }
-    else if (arg2_flag == -1)
-    {
-        printf("Argument 2 Error.\n");
-        return -1;
-    }
+//     /* Determine which output method to use */
+//     arg2_flag = handle_arg2(argv[2]);
+//     if (arg2_flag == 1)
+//     {
+//         output_to_stdout();
+//     }
+//     else if (arg2_flag == 2)
+//     {
+//         output_to_files();
+//     }
+//     else if (arg2_flag == -1)
+//     {
+//         printf("Argument 2 Error.\n");
+//         return -1;
+//     }
 
-    // TODO remove
-    arg3_flag = 0;
-    arg4_flag = 0;
+//     // TODO remove
+//     arg3_flag = 0;
+//     arg4_flag = 0;
 
-    /* Handle optional arguments */
-    if (argc == 4)
-    {        /* at least one optional arg */
-        handle_arg3(argv[3]);
+//     /* Handle optional arguments */
+//     if (argc == 4)
+//     {        /* at least one optional arg */
+//         handle_arg3(argv[3]);
 
-        if (argc == 5)
-        {    /* both optional args */
-            handle_arg4(argv[4]);
-        }
-    }
-    return 0;
-}
+//         if (argc == 5)
+//         {    /* both optional args */
+//             handle_arg4(argv[4]);
+//         }
+//     }
+//     return 0;
+// }
 
-int decode_rlefile(FILE *infile, FILE *outfile)
-{
-    return 0;
-}
+// int decode_rlefile(FILE *infile, FILE *outfile)
+// {
+//     return 0;
+// }
 
-void output_to_stdout()
-{
-    printf("Output: to stdout...\n");
-}
+// void output_to_stdout()
+// {
+//     printf("Output: to stdout...\n");
+// }
 
-void output_to_files()
-{
-    printf("Output: to files...\n");
-}
+// void output_to_files()
+// {
+//     printf("Output: to files...\n");
+// }
 
-char * create_path(char *folder, char *filename)
-{
-    // TODO move the malloc operation and NULL check to a reusable method
-    if (folder == NULL || filename == NULL)
-    {
-        return "NullError";
-    }
+// char * create_path(char *folder, char *filename)
+// {
+//     // TODO move the malloc operation and NULL check to a reusable method
+//     if (folder == NULL || filename == NULL)
+//     {
+//         return "NullError";
+//     }
 
-    // Allocate memory for char *path
-    char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
+//     // Allocate memory for char *path
+//     char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
 
-    strcpy(path, folder);
-    strcpy(path, filename);
+//     strcpy(path, folder);
+//     strcpy(path, filename);
 
-    return path;
+//     return path;
 
-    // Double check we are not trying to write null to path
-    // if (path == NULL)
-    // {
-    //     printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
-    //     exit(EXIT_SUCCESS);
-    // }
-    // else
-    // {
-    //     strcpy(path, folder);
-    //     strcat(path, filename);
-    //     return path;
-    // }
-}
+//     // Double check we are not trying to write null to path
+//     // if (path == NULL)
+//     // {
+//     //     printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
+//     //     exit(EXIT_SUCCESS);
+//     // }
+//     // else
+//     // {
+//     //     strcpy(path, folder);
+//     //     strcat(path, filename);
+//     //     return path;
+//     // }
+// }

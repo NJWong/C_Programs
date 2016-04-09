@@ -3,8 +3,8 @@ CFLAGS = -g -Wall -I.
 
 all: clean_bins rledecode
 
-rledecode: driver.c rledecode.c arg_parser.c
-	$(CC) $(CFLAGS) -o rledecode driver.c rledecode.c arg_parser.c
+rledecode: arg_parser.c rledecode.c driver.c 
+	$(CC) $(CFLAGS) -o rledecode arg_parser.c rledecode.c driver.c
 
 test: clean_tests arg_parser_test rledecode_test
 

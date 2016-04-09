@@ -1,70 +1,59 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "arg_parser.h"
+// #include "arg_parser.h"
+// #include "arg_parser.c"
 #include "rledecode.h"
 
 int rledecode(int argc, char **argv)
 {
-    printf("--- Starting rledecode ---\n");
+    fprintf(stderr, "--- Starting rledecode ---\n");
 
     if (validate_args(argc, argv) != 0) {
-        printf("Args are not valid.\n");
-        exit_program();
+        fprintf(stderr, "Args are not valid.\n");
+        return -1;
     }
     return 0;
 }
 
 int validate_args(int argc, char **argv)
 {
-    int result = check_number_of_args(argc);
-    printf("check_number_of_args: %d\n", result);
-    return result;
+    int correct_number_of_args = check_number_of_args(argc);
+    // int can_parse_args = parse_arg(1, argv[1]);
+
+    return correct_number_of_args;
 }
 
 int check_number_of_args(int argc)
 {
-    int test = correct_number_of_args(argc);
-    if (test)
+    if (argc <= 5 && argc >= 3)
     {
         return 0;
     }
     else {
-        printf("Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
+        fprintf(stderr, "Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
         return -1;
     }
-}
-
-int correct_number_of_args(int argc)
-{
-    // Remember: argv[0] is './rledecode'
-    return (argc <= 5 && argc >= 3); // returns 1 if success, 0 otherwise
-}
-
-void exit_program()
-{
-    printf("Exiting Cleanly.\n");
-    exit(EXIT_SUCCESS);
 }
 
 
 /* UNUSED */
 
-void read_rle_contents() {
+// void read_rle_contents() {
 
-}
+// }
 
-void adjust_scale() {
+// void adjust_scale() {
 
-}
+// }
 
-void scalefactor_is_valid() {
+// void scalefactor_is_valid() {
 
-}
+// }
 
-void apply_tween() {
+// void apply_tween() {
 
-}
+// }
 
-void tweenfactor_is_valid() {
+// void tweenfactor_is_valid() {
 
-}
+// }
