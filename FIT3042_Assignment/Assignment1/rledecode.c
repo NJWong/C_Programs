@@ -37,9 +37,10 @@ void decode_to_stdout(int argc, char **argv)
     fprintf(stderr, "decode_to_stdout\n");
 
     FILE *rlefile = NULL;
+    FILE *outFile = NULL;
 
     /* Open the file */
-    rlefile = fopen(argv[1], "r");
+    rlefile = fopen(argv[1], "rb");
 
     /* Check for NULL pointer */
     if (rlefile == NULL)
@@ -47,16 +48,8 @@ void decode_to_stdout(int argc, char **argv)
         fprintf(stderr, "Can't open file: %s. Does not exist\n", argv[1]);
     }
 
-    // int currChar;                       /* current characters */
-    int prevChar;                       /* previous characters */
-    // unsigned char count;                /* number of characters in a run */
-
-    /* decode inFile */
-    prevChar = EOF;     /* force next char to be different */
-
-
-    char *width_string = (char*) malloc(5*sizeof(char));
-    char *height_string = (char*) malloc(5*sizeof(char));
+    char *width_string = (char*) malloc(4*sizeof(char));
+    char *height_string = (char*) malloc(4*sizeof(char));
     int count = 0;
 
     while (count < 3)
@@ -66,9 +59,7 @@ void decode_to_stdout(int argc, char **argv)
         if (count == 2)
         {
             strncpy(width_string, line, 4);
-            width_string[4] = '\0';
             strncpy(height_string, &line[5], 4);
-            height_string[4] = '\0';
         }
         count++;
     }
@@ -81,84 +72,64 @@ void decode_to_stdout(int argc, char **argv)
     free(width_string);
     free(height_string);
 
+    const char key_frame_delim = 'K';
+    char c = '\0';
 
-    /* read input until there's nothing left */
-    // while ((currChar = fgetc(rlefile)) != EOF)
-    // {
-    //     // printf("%d", currChar);
+    outFile = fopen("testout.ppm", "wb");
 
-    //     /* check for run */
-    //     if (currChar == prevChar)
-    //     {
-    //         /* we have a run.  write it out. */
-    //         count = fgetc(rlefile);
-    //         while (count > 0)
-    //         {
-    //             // printf("%d", currChar);
-    //             count--;
-    //         }
+    while ((c = fgetc(rlefile)) != EOF)
+    {
+        /* Look for the next key frame */
+        if (c == key_frame_delim)
+        {
+            /* We've found the next key frame */
+            printf("\nKEY FRAME FOUND\n");
 
-    //         prevChar = EOF;     /* force next char to be different */
-    //     }
-    //     else
-    //     {
-    //         /* no run */
-    //         prevChar = currChar;
-    //     }
-    // }
+            int countChar;
+            int currChar;
+            int pixel_counter = 0;
 
+            while ((countChar = fgetc(rlefile)) != EOF)
+            {
+                countChar = (char)countChar;
 
-    // int countChar;
-    // int currChar;
+                if (countChar < 0)
+                {
+                    countChar = (MIN_RUN - 1) - countChar;
 
-    // while ((countChar = fgetc(rlefile)) != EOF)
-    // {
-    //     countChar = (char)countChar;
+                    if (EOF == (currChar = fgetc(rlefile)))
+                    {
+                        countChar = 0;
+                    }
 
-    //     if (countChar < 0)
-    //     {
-    //         countChar = (MIN_RUN - 1) - countChar;
-
-    //         if (EOF == (currChar = fgetc(rlefile)))
-    //         {
-    //             fprintf(stderr, "Run block is too short\n");
-    //             countChar = 0;
-    //         }
-
-    //         while (countChar > 0)
-    //         {
-    //             fputc(currChar, outFile);
-    //             // fprintf(stdout, "%c", currChar);
-    //             countChar--;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         for (countChar++; countChar > 0; countChar--)
-    //         {
-    //             if ((currChar = fgetc(rlefile)) != EOF)
-    //             {
-    //                 fputc(currChar, outFile);
-    //                 // fprintf(stdout, "%c", currChar);
-    //             }
-    //             else
-    //             {
-    //                 fprintf(stderr, "Copy block is too short\n");
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // char line[100];
-    // fgets( line, 100, rlefile);
-    // printf("The line is: %s\n", line);
-    // fgets( line, 100, rlefile);
-    // printf("The line is: %s\n", line);
-    // while ( fgets( line, 100, rlefile ) != NULL ) 
-    // { 
-    //     printf("The line is: %s\n", line); 
-    // } 
+                    while (countChar > 0)
+                    {
+                        printf("%d", currChar);
+                        pixel_counter++;
+                        // fputc(currChar, outFile);
+                        countChar--;
+                    }
+                }
+                else {
+                    for (countChar++; countChar > 0; countChar--)
+                    {
+                        if ((currChar = fgetc(rlefile)) != EOF)
+                        {
+                            printf("%d", currChar);
+                            pixel_counter++;
+                            // fputc(currChar, outFile);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            printf("\npixel_counter: %d\n", pixel_counter);
+        }
+    }
+    fclose(outFile);
 
     /* Close the file */
     fclose(rlefile);
