@@ -3,7 +3,19 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <arg_parser.h>
+#include "arg_parser.h"
+
+int parse_arg(int arg_index, char *arg);
+int parse_arguments(int argc, char **argv);
+int rleplay_file_exists(char *filename);
+int handle_arg1(char *filename);
+int handle_arg2(char *arg2);
+int handle_arg3(char *arg3);
+int handle_arg4(char *arg4);
+void output_to_files();
+void output_to_stdout();
+int is_valid_prefix(char *prefix);
+char * create_path(char *folder, char *filename);
 
 /*
     Parses the command line argument list and executes appropriate functions.
@@ -68,56 +80,6 @@ int handle_arg1(char *filepath)
     }    
 
     return 0;
-
-    // Setup
-    // TODO check this - it is dangerous to assume that rleplay files will be in this folder
-    // char *path = create_path("rlefiles/", filename);
-
-    // if (strcmp(path, "NullError") == 0)
-    // {
-    //     printf("Error: Either folder or filename is NULL. Exiting cleanly.\n");
-    //     return -1;
-    // }
-
-    // printf("Looking for %s...\n", path);
-
-    // if (rleplay_file_exists(path))
-    // {
-    //     printf("%s exists. Proceeding...\n", path);
-    // }
-    // else
-    // {
-    //     printf("%s does not exist.\n", path);
-    //     return -1;
-    // }
-    // // Cleanup
-    // free(path);
-
-    // return 0;
-}
-
-char * create_path(char *folder, char *filename)
-{
-    if (folder == NULL || filename == NULL)
-    {
-        return "NullError";
-    }
-
-    // TODO maybe do the malloc and NULL check in a reusable method
-    char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
-
-    // Another NULL test can't hurt
-    if (path == NULL)
-    {
-        printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
-        exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        strcpy(path, folder);
-        strcat(path, filename);
-        return path;
-    }
 }
 
 /*
@@ -177,6 +139,8 @@ int handle_arg4(char *arg4)
     printf("handle_arg4");
     return 0;
 }
+
+/* BELOW IS OUT OF DATE CODE */
 
 
 int parse_arguments(int argc, char **argv)
@@ -238,4 +202,34 @@ void output_to_stdout()
 void output_to_files()
 {
     printf("Output: to files...\n");
+}
+
+char * create_path(char *folder, char *filename)
+{
+    // TODO move the malloc operation and NULL check to a reusable method
+    if (folder == NULL || filename == NULL)
+    {
+        return "NullError";
+    }
+
+    // Allocate memory for char *path
+    char *path = (char *) malloc(1 + strlen(folder) + strlen(filename));
+
+    strcpy(path, folder);
+    strcpy(path, filename);
+
+    return path;
+
+    // Double check we are not trying to write null to path
+    // if (path == NULL)
+    // {
+    //     printf("Error: Path to %s is NULL. Exiting cleanly.\n", filename);
+    //     exit(EXIT_SUCCESS);
+    // }
+    // else
+    // {
+    //     strcpy(path, folder);
+    //     strcat(path, filename);
+    //     return path;
+    // }
 }

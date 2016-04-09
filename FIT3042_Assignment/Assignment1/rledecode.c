@@ -1,55 +1,43 @@
 #include <stdlib.h>
 #include <stdio.h>
-// #include "arg_parser.c"
-#include <arg_parser.h>
+#include "arg_parser.h"
+#include "rledecode.h"
 
-int validate_args(int argc, char **argv);
-int correct_number_of_args(int argc);
-void exit_program();
-
-/* Entry point */
-int main(int argc, char **argv)
+int rledecode(int argc, char **argv)
 {
     printf("--- Starting rledecode ---\n");
 
-    validate_args(argc, argv);
-
+    if (validate_args(argc, argv) != 0) {
+        printf("Args are not valid.\n");
+        exit_program();
+    }
     return 0;
 }
 
 int validate_args(int argc, char **argv)
 {
-    int pa_flag = 0;
-
-    if (correct_number_of_args(argc))
-    {
-        // pa_flag = parse_arguments(argc, argv);
-        pa_flag = parse_arg(1, argv[1]);
-        if (pa_flag == -1)
-        {
-            exit_program();
-        }
-    }
-    else
-    {
-        printf("Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
-        exit_program();
-    }
-
-    return 0;
+    int result = check_number_of_args(argc);
+    printf("check_number_of_args: %d\n", result);
+    return result;
 }
 
-/*
-    Check there are the correct number of arguments.
-    There are two required arguments, and two optional arguments for rledecode.
-    
-    Input: the length of argv - the argument list
-    Output: 1 if there are the correct number of arguments, 0 otherwise
-*/
-int correct_number_of_args(argc)
+int check_number_of_args(int argc)
+{
+    int test = correct_number_of_args(argc);
+    if (test)
+    {
+        return 0;
+    }
+    else {
+        printf("Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
+        return -1;
+    }
+}
+
+int correct_number_of_args(int argc)
 {
     // Remember: argv[0] is './rledecode'
-    return (argc <= 5 && argc >= 3);
+    return (argc <= 5 && argc >= 3); // returns 1 if success, 0 otherwise
 }
 
 void exit_program()
@@ -57,6 +45,9 @@ void exit_program()
     printf("Exiting Cleanly.\n");
     exit(EXIT_SUCCESS);
 }
+
+
+/* UNUSED */
 
 void read_rle_contents() {
 

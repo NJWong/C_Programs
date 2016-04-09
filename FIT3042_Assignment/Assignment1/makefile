@@ -3,13 +3,16 @@ CFLAGS = -g -Wall -I.
 
 all: clean_bins rledecode
 
-rledecode: rledecode.c arg_parser.c
-	$(CC) $(CFLAGS) -o rledecode rledecode.c arg_parser.c
+rledecode: driver.c rledecode.c arg_parser.c
+	$(CC) $(CFLAGS) -o rledecode driver.c rledecode.c arg_parser.c
 
-test: clean_tests arg_parser_test
+test: clean_tests arg_parser_test rledecode_test
 
 arg_parser_test: tests/arg_parser_test.c
 	$(CC) $(CFLAGS) -o tests/arg_parser_test tests/arg_parser_test.c
+
+rledecode_test: tests/rledecode_test.c
+	$(CC) $(CFLAGS) -o tests/rledecode_test tests/rledecode_test.c
 
 clean: clean_bins clean_tests
 
@@ -21,6 +24,7 @@ clean_bins:
 # Clean up compiled output files for unit test files
 clean_tests:
 	$(RM) tests/arg_parser_test
+	$(RM) tests/rledecode_test
 	$(RM) ./*rle
 	$(RM) tests/*.rle
 	$(RM) rlefiles/test*.rle

@@ -6,31 +6,6 @@
 int tests_run = 0;
 
 /* handle_arg1() tests */
-static char * create_path_test1()
-{
-    char *path = create_path("folder/", "file");
-    mu_assert("\nError: create_path_test1\n", strcmp(path, "folder/file") == 0);
-    return 0;
-}
-
-static char * create_path_test2()
-{
-    char *path = create_path("testfolder/", "testfile");
-    mu_assert("\nError: create_path_test2\n", strcmp(path, "folder/file") != 0);
-    return 0;
-}
-
-static char * create_path_test3()
-{
-    mu_assert("\nError: create_path_test3\n", create_path("folder/", NULL) == "NullError");
-    return 0;
-}
-
-static char * create_path_test4()
-{
-    mu_assert("\nError: create_path_test4\n", create_path(NULL, "file") == "NullError");
-    return 0;
-}
 
 static char * rleplay_file_exists_test1()
 {
@@ -139,10 +114,6 @@ static char * parse_arg_test4() {
 
 static char * all_tests()
 {
-    mu_run_test(create_path_test1);
-    mu_run_test(create_path_test2);
-    mu_run_test(create_path_test3);
-    mu_run_test(create_path_test4);
     mu_run_test(rleplay_file_exists_test1);
     mu_run_test(rleplay_file_exists_test2);
     mu_run_test(rleplay_file_exists_test3);
@@ -157,6 +128,7 @@ static char * all_tests()
     mu_run_test(parse_arg_test2);
     mu_run_test(parse_arg_test3);
     mu_run_test(parse_arg_test4);
+
     return 0;
 }
 
