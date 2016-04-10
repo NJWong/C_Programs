@@ -165,11 +165,14 @@ void decode_to_stdout(int argc, char **argv)
             {
                 for (int w = 1; w <= width; w++)
                 {
-                    next_rgb_value[0] = red_frame_data[pixel_index];
-                    next_rgb_value[1] = green_frame_data[pixel_index];
-                    next_rgb_value[2] = blue_frame_data[pixel_index];
+                    // next_rgb_value[0] = red_frame_data[pixel_index];
+                    // next_rgb_value[1] = green_frame_data[pixel_index];
+                    // next_rgb_value[2] = blue_frame_data[pixel_index];
+                    // fputs(next_rgb_value, outFile);
+                    fputc(red_frame_data[pixel_index], outFile);
+                    fputc(green_frame_data[pixel_index], outFile);
+                    fputc(blue_frame_data[pixel_index], outFile);
 
-                    fputs(next_rgb_value, outFile);
                     pixel_index++;
                 }
                 fputc('\n', outFile);
