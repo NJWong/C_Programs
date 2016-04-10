@@ -66,8 +66,8 @@ void decode_to_stdout(int argc, char **argv)
 
     int width = atoi(width_string);
     int height = atoi(height_string);
-    int image_pixels = width * height;
-    printf("width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
+    long image_pixels = width * height;
+    printf("width: %d, height: %d, pixels:%ld\n", width, height, image_pixels);
 
     free(width_string);
     free(height_string);
@@ -76,6 +76,13 @@ void decode_to_stdout(int argc, char **argv)
     char c = '\0';
 
     outFile = fopen("testout.ppm", "wb");
+
+    /* Initialise the arrays for each color channel */
+    char *red_frame_data = (char *) malloc(image_pixels * sizeof(char));
+    char *green_frame_data = (char *) malloc(image_pixels * sizeof(char));
+    char *blue_frame_data = (char *) malloc(image_pixels * sizeof(char));
+
+    char *key_frame_data = (char *) malloc((image_pixels * 3) * sizeof(char));
 
     while ((c = fgetc(rlefile)) != EOF)
     {
@@ -105,6 +112,7 @@ void decode_to_stdout(int argc, char **argv)
                     while (countChar > 0)
                     {
                         printf("%d", currChar);
+                        // key_frame_data[pixel_counter] = currChar;
                         pixel_counter++;
                         // fputc(currChar, outFile);
                         countChar--;
@@ -116,6 +124,7 @@ void decode_to_stdout(int argc, char **argv)
                         if ((currChar = fgetc(rlefile)) != EOF)
                         {
                             printf("%d", currChar);
+                            // key_frame_data[pixel_counter] = currChar;
                             pixel_counter++;
                             // fputc(currChar, outFile);
                         }
@@ -129,6 +138,13 @@ void decode_to_stdout(int argc, char **argv)
             printf("\npixel_counter: %d\n", pixel_counter);
         }
     }
+
+    free(red_frame_data);
+    free(green_frame_data);
+    free(blue_frame_data);
+
+    free(key_frame_data);
+
     fclose(outFile);
 
     /* Close the file */
