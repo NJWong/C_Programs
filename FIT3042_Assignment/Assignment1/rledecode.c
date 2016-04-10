@@ -159,16 +159,14 @@ void decode_to_stdout(int argc, char **argv)
 
             unsigned char *next_rgb_value = (unsigned char *) malloc(3 * sizeof(unsigned char));
 
+            fputs("P6\n1200 1600\n255\n", outFile);
+
             int pixel_index = 0;
 
             for (int h = 1; h <= height; h++)
             {
                 for (int w = 1; w <= width; w++)
                 {
-                    // next_rgb_value[0] = red_frame_data[pixel_index];
-                    // next_rgb_value[1] = green_frame_data[pixel_index];
-                    // next_rgb_value[2] = blue_frame_data[pixel_index];
-                    // fputs(next_rgb_value, outFile);
                     fputc(red_frame_data[pixel_index], outFile);
                     fputc(green_frame_data[pixel_index], outFile);
                     fputc(blue_frame_data[pixel_index], outFile);
@@ -186,9 +184,7 @@ void decode_to_stdout(int argc, char **argv)
             //     printf("R: %d, G: %d, B: %d\n", next_rgb_value[0], next_rgb_value[1], next_rgb_value[2]);
             // }
 
-            printf("\nvalue_counter: %d\n", value_counter);
-
-            free(next_rgb_value);
+            // printf("\nvalue_counter: %d\n", value_counter);
         }
     }
 
