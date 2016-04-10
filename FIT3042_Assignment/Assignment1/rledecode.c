@@ -175,7 +175,7 @@ void decode_to_stdout(int argc, char **argv)
 
                     pixel_index++;
                 }
-                fputc('\n', outFile);
+                // fputc('\n', outFile);
             }
             
             // for (int i = 0; i < image_pixels; i++)
