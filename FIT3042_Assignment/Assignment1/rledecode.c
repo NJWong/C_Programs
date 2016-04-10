@@ -24,23 +24,30 @@ int rledecode(int argc, char **argv)
     }
 
     /* Decode the .rle file and put to output defined in arg2 */
-    if ((strcmp(argv[2], "-") == 0))
-        decode_to_stdout(argc, argv);
-    else
-        decode_to_ppm_files(argc, argv);
+    int to_ppm = strcmp(argv[2], "-");
+    // decode_file(to_ppm, argv);
+    decode_file(0, argv);
 
     return 0;
 }
 
-void decode_to_stdout(int argc, char **argv)
+void decode_file(int to_ppm, char **argv)
 {
-    fprintf(stderr, "decode_to_stdout\n");
-
-    FILE *rlefile = NULL;
-    FILE *outFile = NULL;
+    if (to_ppm)
+    {
+        fprintf(stderr, "to ppm\n");
+    }
+    else
+    {
+        fprintf(stderr, "to stdout\n");
+    }
 
     /* Open the file */
-    rlefile = fopen(argv[1], "rb");
+    FILE *rlefile = fopen(argv[1], "rb");
+    FILE *outFile = NULL;
+
+    // if ()
+    outFile = fopen("testout.ppm", "w");
 
     /* Check for NULL pointer */
     if (rlefile == NULL)
@@ -75,8 +82,6 @@ void decode_to_stdout(int argc, char **argv)
 
     const char key_frame_delim = 'K';
     char c = '\0';
-
-    outFile = fopen("testout.ppm", "wb");
 
     /* Initialise the arrays for each color channel */
     unsigned char *red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
@@ -157,8 +162,6 @@ void decode_to_stdout(int argc, char **argv)
                 }
             }
 
-            unsigned char *next_rgb_value = (unsigned char *) malloc(3 * sizeof(unsigned char));
-
             fputs("P6\n1200 1600\n255\n", outFile);
 
             int pixel_index = 0;
@@ -173,16 +176,7 @@ void decode_to_stdout(int argc, char **argv)
 
                     pixel_index++;
                 }
-                // fputc('\n', outFile);
             }
-            
-            // for (int i = 0; i < image_pixels; i++)
-            // {
-            //     next_rgb_value[0] = red_frame_data[i];
-            //     next_rgb_value[1] = green_frame_data[i];
-            //     next_rgb_value[2] = blue_frame_data[i];
-            //     printf("R: %d, G: %d, B: %d\n", next_rgb_value[0], next_rgb_value[1], next_rgb_value[2]);
-            // }
 
             // printf("\nvalue_counter: %d\n", value_counter);
         }
@@ -200,13 +194,6 @@ void decode_to_stdout(int argc, char **argv)
     fclose(rlefile);
 
     // return 0;
-}
-
-void decode_to_ppm_files(int argc, char **argv)
-{
-    fprintf(stderr, "decode_to_ppm_files\n");
-
-    // FILE *outFile = fopen("testout.ppm", "wb");
 }
 
 int validate_args(int argc, char **argv)

@@ -8,5 +8,4 @@ int handle_arg1(char *filename);
 int handle_arg2(char *arg2);
 int handle_arg3(char *arg3);
 int handle_arg4(char *arg4);
-void decode_to_stdout(int argc, char **argv);
-void decode_to_ppm_files(int argc, char **argv);
+void decode_file(int to_ppm, char **argv);
