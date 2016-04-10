@@ -46,30 +46,42 @@ void decode_file(int to_ppm, char **argv)
     FILE *rlefile = fopen(argv[1], "rb");
     FILE *outFile = NULL;
 
-    // if ()
-    outFile = fopen("testout.ppm", "w");
+    if (to_ppm)
+    {
+        outFile = fopen("testout.ppm", "w");   
+        if (outFile == NULL)
+        {
+            fprintf(stderr, "*outFile is a null pointer\n");
+            return;
+        } 
+    }
 
     /* Check for NULL pointer */
     if (rlefile == NULL)
     {
-        fprintf(stderr, "Can't open file: %s. Does not exist\n", argv[1]);
+        fprintf(stderr, "*rlefile is a null pointer\n");
+        return;
     }
 
+    /* Determine the dimensions of the image in the rle video file */
+
+    /*  It is reasonable to assume that the width or height of an image will not exceed a 4 digit value. */
     char *width_string = (char*) malloc(4*sizeof(char));
     char *height_string = (char*) malloc(4*sizeof(char));
-    int count = 0;
 
-    while (count < 3)
+    int line_count = 0;
+
+    while (line_count < 3)
     {
         char line[10]; //TODO malloc instead
         fgets(line, sizeof line, rlefile);
-        if (count == 2)
+        if (line_count == 2)
         {
             // FIX ME because the dimensions doesn't always have 4 characters
             strncpy(width_string, line, 4); 
             strncpy(height_string, &line[5], 4);
         }
-        count++;
+        line_count++;
     }
 
     int width = atoi(width_string);
@@ -162,7 +174,10 @@ void decode_file(int to_ppm, char **argv)
                 }
             }
 
-            fputs("P6\n1200 1600\n255\n", outFile);
+            if (to_ppm)
+            {
+                fputs("P6\n1200 1600\n255\n", outFile);
+            }
 
             int pixel_index = 0;
 
@@ -170,10 +185,18 @@ void decode_file(int to_ppm, char **argv)
             {
                 for (int w = 1; w <= width; w++)
                 {
-                    fputc(red_frame_data[pixel_index], outFile);
-                    fputc(green_frame_data[pixel_index], outFile);
-                    fputc(blue_frame_data[pixel_index], outFile);
-
+                    if (to_ppm)
+                    {
+                        fputc(red_frame_data[pixel_index], outFile);
+                        fputc(green_frame_data[pixel_index], outFile);
+                        fputc(blue_frame_data[pixel_index], outFile);   
+                    }
+                    else
+                    {
+                        fprintf(stdout, "%c", red_frame_data[pixel_index]);
+                        fprintf(stdout, "%c", green_frame_data[pixel_index]);
+                        fprintf(stdout, "%c", blue_frame_data[pixel_index]);
+                    }
                     pixel_index++;
                 }
             }
