@@ -67,8 +67,8 @@ void decode_to_stdout(int argc, char **argv)
 
     int width = atoi(width_string);
     int height = atoi(height_string);
-    long image_pixels = width * height;
-    printf("width: %d, height: %d, pixels:%ld\n", width, height, image_pixels);
+    int image_pixels = width * height;
+    printf("width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
 
     free(width_string);
     free(height_string);
@@ -113,7 +113,6 @@ void decode_to_stdout(int argc, char **argv)
                     while (countChar > 0)
                     {
                         key_frame_data[value_counter] = currChar;
-                        fputc(currChar, outFile);
                         value_counter++;
                         countChar--;
                     }
@@ -124,7 +123,6 @@ void decode_to_stdout(int argc, char **argv)
                         if ((currChar = fgetc(rlefile)) != EOF)
                         {
                             key_frame_data[value_counter] = currChar;
-                            fputc(currChar, outFile);
                             value_counter++;
                         }
                         else
@@ -142,42 +140,52 @@ void decode_to_stdout(int argc, char **argv)
 
             for (int i = 0; i < (image_pixels * 3); i++)
             {
-                if (i <= image_pixels)
+                if (i < image_pixels)
                 {
                     red_frame_data[r_index] = key_frame_data[i];
                     r_index++;
                 }
-                else if (i <= (image_pixels * 2))
+                else if (i < (image_pixels * 2))
                 {
                     green_frame_data[g_index] = key_frame_data[i];
                     g_index++;
                 }
-                else
+                else if (i < (image_pixels * 3))
                 {
                     blue_frame_data[b_index] = key_frame_data[i];
                     b_index++;
                 }
             }
 
-            /* print red frame data */
-            // for (int i = 0; i < image_pixels; i++)
-            // {
-            //     printf("%d", red_frame_data[i]);
-            // }
+            unsigned char *next_rgb_value = (unsigned char *) malloc(3 * sizeof(unsigned char));
 
-            // /* print green frame data */
-            // for (int i = 0; i < image_pixels; i++)
-            // {
-            //     printf("%d", green_frame_data[i]);
-            // }
+            int pixel_index = 0;
 
-            // /* print blue frame data */
+            for (int h = 1; h <= height; h++)
+            {
+                for (int w = 1; w <= width; w++)
+                {
+                    next_rgb_value[0] = red_frame_data[pixel_index];
+                    next_rgb_value[1] = green_frame_data[pixel_index];
+                    next_rgb_value[2] = blue_frame_data[pixel_index];
+
+                    fputs(next_rgb_value, outFile);
+                    pixel_index++;
+                }
+                fputc('\n', outFile);
+            }
+            
             // for (int i = 0; i < image_pixels; i++)
             // {
-            //     printf("%d", blue_frame_data[i]);
+            //     next_rgb_value[0] = red_frame_data[i];
+            //     next_rgb_value[1] = green_frame_data[i];
+            //     next_rgb_value[2] = blue_frame_data[i];
+            //     printf("R: %d, G: %d, B: %d\n", next_rgb_value[0], next_rgb_value[1], next_rgb_value[2]);
             // }
 
             printf("\nvalue_counter: %d\n", value_counter);
+
+            free(next_rgb_value);
         }
     }
 
