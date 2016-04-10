@@ -1,18 +1,19 @@
 CC 	   = gcc
 CFLAGS = -g -Wall -I.
+MODE   = -std=c99
 
 all: clean_bins rledecode
 
 rledecode: rledecode.c driver.c 
-	$(CC) $(CFLAGS) -o rledecode rledecode.c driver.c
+	$(CC) $(CFLAGS) $(MODE) -o rledecode rledecode.c driver.c
 
 test: clean_tests rledecode_test
 
 arg_parser_test: tests/arg_parser_test.c
-	$(CC) $(CFLAGS) -o tests/arg_parser_test tests/arg_parser_test.c
+	$(CC) $(CFLAGS) $(MODE) -o tests/arg_parser_test tests/arg_parser_test.c
 
 rledecode_test: tests/rledecode_test.c
-	$(CC) $(CFLAGS) -o tests/rledecode_test tests/rledecode_test.c
+	$(CC) $(CFLAGS) $(MODE) -o tests/rledecode_test tests/rledecode_test.c
 
 clean: clean_bins clean_tests
 
