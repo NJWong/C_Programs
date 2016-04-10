@@ -54,11 +54,12 @@ void decode_to_stdout(int argc, char **argv)
 
     while (count < 3)
     {
-        char line[10];
+        char line[10]; //TODO malloc instead
         fgets(line, sizeof line, rlefile);
         if (count == 2)
         {
-            strncpy(width_string, line, 4);
+            // FIX ME because the dimensions doesn't always have 4 characters
+            strncpy(width_string, line, 4); 
             strncpy(height_string, &line[5], 4);
         }
         count++;
@@ -78,11 +79,11 @@ void decode_to_stdout(int argc, char **argv)
     outFile = fopen("testout.ppm", "wb");
 
     /* Initialise the arrays for each color channel */
-    char *red_frame_data = (char *) malloc(image_pixels * sizeof(char));
-    char *green_frame_data = (char *) malloc(image_pixels * sizeof(char));
-    char *blue_frame_data = (char *) malloc(image_pixels * sizeof(char));
+    unsigned char *red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+    unsigned char *green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+    unsigned char *blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
 
-    char *key_frame_data = (char *) malloc((image_pixels * 3) * sizeof(char));
+    unsigned char *key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
 
     while ((c = fgetc(rlefile)) != EOF)
     {
@@ -94,7 +95,7 @@ void decode_to_stdout(int argc, char **argv)
 
             int countChar;
             int currChar;
-            int pixel_counter = 0;
+            int value_counter = 0;
 
             while ((countChar = fgetc(rlefile)) != EOF)
             {
@@ -111,10 +112,9 @@ void decode_to_stdout(int argc, char **argv)
 
                     while (countChar > 0)
                     {
-                        printf("%d", currChar);
-                        // key_frame_data[pixel_counter] = currChar;
-                        pixel_counter++;
-                        // fputc(currChar, outFile);
+                        key_frame_data[value_counter] = currChar;
+                        fputc(currChar, outFile);
+                        value_counter++;
                         countChar--;
                     }
                 }
@@ -123,10 +123,9 @@ void decode_to_stdout(int argc, char **argv)
                     {
                         if ((currChar = fgetc(rlefile)) != EOF)
                         {
-                            printf("%d", currChar);
-                            // key_frame_data[pixel_counter] = currChar;
-                            pixel_counter++;
-                            // fputc(currChar, outFile);
+                            key_frame_data[value_counter] = currChar;
+                            fputc(currChar, outFile);
+                            value_counter++;
                         }
                         else
                         {
@@ -135,7 +134,50 @@ void decode_to_stdout(int argc, char **argv)
                     }
                 }
             }
-            printf("\npixel_counter: %d\n", pixel_counter);
+
+            /* Copy separate channel values into their own arrays */
+            int r_index = 0;
+            int g_index = 0;
+            int b_index = 0;
+
+            for (int i = 0; i < (image_pixels * 3); i++)
+            {
+                if (i <= image_pixels)
+                {
+                    red_frame_data[r_index] = key_frame_data[i];
+                    r_index++;
+                }
+                else if (i <= (image_pixels * 2))
+                {
+                    green_frame_data[g_index] = key_frame_data[i];
+                    g_index++;
+                }
+                else
+                {
+                    blue_frame_data[b_index] = key_frame_data[i];
+                    b_index++;
+                }
+            }
+
+            /* print red frame data */
+            // for (int i = 0; i < image_pixels; i++)
+            // {
+            //     printf("%d", red_frame_data[i]);
+            // }
+
+            // /* print green frame data */
+            // for (int i = 0; i < image_pixels; i++)
+            // {
+            //     printf("%d", green_frame_data[i]);
+            // }
+
+            // /* print blue frame data */
+            // for (int i = 0; i < image_pixels; i++)
+            // {
+            //     printf("%d", blue_frame_data[i]);
+            // }
+
+            printf("\nvalue_counter: %d\n", value_counter);
         }
     }
 
