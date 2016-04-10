@@ -181,37 +181,20 @@ void decode_to_stdout(char **argv)
 
 void decode_to_ppm(char **argv)
 {
-    return;
-}
+    fprintf(stderr, "Decode to ppm\n");   
 
-void decode_file(int to_ppm, char **argv)
-{
-    fprintf(stderr, "to stdout\n");
-
-    /* Open the file */
     FILE *rlefile = fopen(argv[1], "rb");
     FILE *outFile = NULL;
 
-    if (to_ppm)
-    {
-        outFile = fopen("testout.ppm", "w");   
-        if (outFile == NULL)
-        {
-            fprintf(stderr, "*outFile is a null pointer\n");
-            return;
-        } 
-    }
+    outFile = fopen("testout.ppm", "w");
 
-    /* Check for NULL pointer */
-    if (rlefile == NULL)
+    if (rlefile == NULL || outFile == NULL)
     {
-        fprintf(stderr, "*rlefile is a null pointer\n");
+        fprintf(stderr, "*rlefile or *outFile is a null pointer. Exiting.\n");
         return;
     }
 
-    /* Determine the dimensions of the image in the rle video file */
-
-    /*  It is reasonable to assume that the width or height of an image will not exceed a 4 digit value. */
+    /* Determine the size of the image in the rle video file */
     char *width_string = (char*) malloc(4*sizeof(char));
     char *height_string = (char*) malloc(4*sizeof(char));
 
@@ -235,6 +218,7 @@ void decode_file(int to_ppm, char **argv)
     int image_pixels = width * height;
     printf("width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
 
+    /* Cleanup */
     free(width_string);
     free(height_string);
 
@@ -245,7 +229,7 @@ void decode_file(int to_ppm, char **argv)
 
     unsigned char *key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
 
-    const char key_frame_delim = 'K';
+        const char key_frame_delim = 'K';
     char c = '\0';
 
     while ((c = fgetc(rlefile)) != EOF)
@@ -254,7 +238,6 @@ void decode_file(int to_ppm, char **argv)
         if (c == key_frame_delim)
         {
             /* We've found the next key frame */
-            printf("\nKEY FRAME FOUND\n");
 
             int countChar;
             int currChar;
@@ -319,11 +302,8 @@ void decode_file(int to_ppm, char **argv)
                     b_index++;
                 }
             }
-
-            if (to_ppm)
-            {
-                fputs("P6\n1200 1600\n255\n", outFile);
-            }
+            
+            fputs("P6\n1200 1600\n255\n", outFile);
 
             int pixel_index = 0;
 
@@ -331,23 +311,12 @@ void decode_file(int to_ppm, char **argv)
             {
                 for (int w = 1; w <= width; w++)
                 {
-                    if (to_ppm)
-                    {
-                        fputc(red_frame_data[pixel_index], outFile);
-                        fputc(green_frame_data[pixel_index], outFile);
-                        fputc(blue_frame_data[pixel_index], outFile);   
-                    }
-                    else
-                    {
-                        fprintf(stdout, "%c", red_frame_data[pixel_index]);
-                        fprintf(stdout, "%c", green_frame_data[pixel_index]);
-                        fprintf(stdout, "%c", blue_frame_data[pixel_index]);
-                    }
+                    fputc(red_frame_data[pixel_index], outFile);
+                    fputc(green_frame_data[pixel_index], outFile);
+                    fputc(blue_frame_data[pixel_index], outFile);
                     pixel_index++;
                 }
             }
-
-            // printf("\nvalue_counter: %d\n", value_counter);
         }
     }
 
@@ -361,8 +330,6 @@ void decode_file(int to_ppm, char **argv)
 
     /* Close the file */
     fclose(rlefile);
-
-    // return 0;
 }
 
 int validate_args(int argc, char **argv)
