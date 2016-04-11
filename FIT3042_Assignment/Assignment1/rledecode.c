@@ -87,8 +87,37 @@ void send_frame_to_stdout(int width, int height, unsigned char *red_frame_data, 
 }
 
 /* Write one frame's worth of data to a ppm file */
-void send_frame_to_ppm(int width, int height, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, FILE *outFile)
+void send_frame_to_ppm(int width, int height, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, char *prefix,  int frame_counter)
 {
+    // printf("send_frame_to_ppm start\n");
+    char *filename = NULL;
+    // sprintf(filename, "%s-%d.ppm", prefix, frame_counter);
+    printf("frame_counter: %d\n", frame_counter);
+    switch(frame_counter)
+    {
+        case 0:
+            filename = "test0.ppm";
+            break;
+        case 1:
+            filename = "test1.ppm";
+            break;
+        case 2:
+            filename = "test2.ppm";
+            break;
+        case 3:
+            filename = "test3.ppm";
+            break;
+    }
+
+    FILE *outFile = fopen(filename, "w");
+    // FILE *outFile = fopen("testout.ppm", "w");
+
+    if (outFile == NULL)
+    {
+        fprintf(stderr, "Pointer to outfile is NULL. Exiting.\n");
+        return;
+    }
+
     fputs("P6\n1200 1600\n255\n", outFile);
 
     int pixel_index = 0;
@@ -103,17 +132,23 @@ void send_frame_to_ppm(int width, int height, unsigned char *red_frame_data, uns
             pixel_index++;
         }
     }
+
+    fclose(outFile);
+    // printf("send_frame_to_ppm end\n");
 }
 
 /* Modified version of Michael Dipperstein's PackBits algorithm variant - http://michael.dipperstein.com/rle/index.html */
 void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data)
 {
+    // printf("decompress_and_store_key_frame_data start\n");
     int countChar;
     int currChar;
     int value_counter = 0;
 
-    while ((countChar = fgetc(rlefile)) != EOF)
+    // FIX ME this is hardcoded for the sonic images
+    while (value_counter < 5760000)
     {
+        countChar = fgetc(rlefile);
         countChar = (char)countChar;
 
         if (countChar < 0)
@@ -127,7 +162,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
 
             while (countChar > 0)
             {
-                // key_frame_data[value_counter] = currChar;
+                key_frame_data[value_counter] = currChar;
                 value_counter++;
                 countChar--;
             }
@@ -137,7 +172,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
             {
                 if ((currChar = fgetc(rlefile)) != EOF)
                 {
-                    // key_frame_data[value_counter] = currChar;
+                    key_frame_data[value_counter] = currChar;
                     value_counter++;
                 }
                 else
@@ -148,10 +183,12 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
         }
     }
     printf("total values: %d\n", value_counter);
+    // printf("decompress_and_store_key_frame_data end\n");
 }
 
 void separate_channel_values(unsigned char *key_frame_data, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, int image_pixels)
 {
+    // printf("separate_channel_values start\n");
     int r_index = 0;
     int g_index = 0;
     int b_index = 0;
@@ -174,6 +211,7 @@ void separate_channel_values(unsigned char *key_frame_data, unsigned char *red_f
             b_index++;
         }
     }
+    // printf("separate_channel_values end\n");
 }
 
 void decode_to_ppm(char **argv)
@@ -187,25 +225,16 @@ void decode_to_ppm(char **argv)
         return;
     }
 
-    FILE *outFile = NULL;
-
     int *dimensions = NULL;
     int width;
     int height;
     int image_pixels;
+    char *prefix = argv[2];
 
     unsigned char *red_frame_data = NULL;
     unsigned char *green_frame_data = NULL;
     unsigned char *blue_frame_data = NULL;
     unsigned char *key_frame_data = NULL;
-
-    outFile = fopen("testout.ppm", "w");
-
-    if (rlefile == NULL || outFile == NULL)
-    {
-        fprintf(stderr, "*rlefile or *outFile is a null pointer. Exiting.\n");
-        return;
-    }
 
     /* Determine the size of the image in the rle video file */
     dimensions = get_dimensions(rlefile);
@@ -223,6 +252,7 @@ void decode_to_ppm(char **argv)
 
     const char key_frame_delim = 'K';
     char c = '\0';
+    int frame_counter = 0;
 
     /* Read characters from file until there is nothing else to read */
     while ((c = fgetc(rlefile)) != EOF)
@@ -230,6 +260,7 @@ void decode_to_ppm(char **argv)
         /* Look for the next key frame */
         if (c == key_frame_delim)
         {
+            printf("WE HAVE A FRAME\n");
             /* We've found the next key frame */
             decompress_and_store_key_frame_data(rlefile, key_frame_data);
 
@@ -237,8 +268,10 @@ void decode_to_ppm(char **argv)
             separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
 
             /* Send decompressed data to a ppm file */
-            send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, outFile);
+            send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
         }
+
+        frame_counter++;
     }
 
     /* Cleanup */
@@ -247,7 +280,6 @@ void decode_to_ppm(char **argv)
     free(blue_frame_data);
     free(key_frame_data);
 
-    fclose(outFile);
     fclose(rlefile);
 }
 
@@ -302,10 +334,10 @@ void decode_to_stdout(char **argv)
             decompress_and_store_key_frame_data(rlefile, key_frame_data);
 
             /* Copy separate channel values into their own arrays */
-            // separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
+            separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
 
             /* Send decompressed data to stdout */
-            // send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
+            send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
         }
     }
 
