@@ -5,13 +5,26 @@
 #include <sys/stat.h>
 #include "rledecode.h"
 
+/************************************************************
+* Desc   : Function that decodes an input .rle file and
+*          either writes the output to stdout, or writes the
+*          output for each frame to a separate .ppm file.
+*
+* Params : argc - the number of given command line arguments
+*          argv - an array of the command line arguments
+*           
+* Return : 0 for success, -1 for failure. The stderr output
+*          stream is used for showing helpful messages to
+*          the user.
+************************************************************/
 int rledecode(int argc, char **argv)
 {
     fprintf(stderr, "\n--- Starting rledecode ---\n");
 
-    /* Check that the commandline arguments are valid */
-    if (validate_args(argc, argv) != 1)
+    /* Check that the command line arguments are valid */
+    if (validate_args(argc, argv) != 0)
     {
+        /* If invalid, then stop here and return to main */
         fprintf(stderr, "Args are not valid.\n");
         return -1;
     }
@@ -28,6 +41,193 @@ int rledecode(int argc, char **argv)
 
     return 0;
 }
+
+/************************************************************
+* Desc   : Function that checks whether the command line
+*          arguments are valid or not.
+*
+* Params : argc - the number of given command line arguments
+*          argv - an array of the command line arguments
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
+int validate_args(int argc, char **argv)
+{
+    int correct_number_of_args = check_number_of_args(argc);
+    if (correct_number_of_args == -1)
+    {
+        return -1;
+    }
+
+    int arg1_is_valid = parse_arg(1, argv[1]);
+    int arg2_is_valid = parse_arg(2, argv[2]);
+    // int arg3_is_valid = parse_arg(3, argv[3]);
+    // int arg4_is_valid = parse_arg(4, argv[4])
+
+    /* Check argv[3] and argv[4] are not both scale or tween */
+    // TODO
+
+    /* Note: the '!' is there so that we return 0 when all args are valid */
+    return !((arg1_is_valid == 0) && ((arg2_is_valid == 1) || (arg2_is_valid == 2)));
+}
+
+/************************************************************
+* Desc   : Function that checks if there is the correct
+*          number of arguments passed through the command line
+*          Minimum is 3:
+*          ./rledecode <*.rle> (<prefix> || "-")
+*          Maximum is 7:
+*          ./rledecode <*.rle> (<prefix> || "-") --scale <sf> --tween <tf>
+*          4 or 6 is strictly disallowed
+           i.e. argc can only be 3, 5, and 7
+*
+* Params : argc - the number of given command line arguments
+*          argv - an array of the command line arguments
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
+int check_number_of_args(int argc)
+{
+    if (argc == 3 || argc == 5 || argc == 7)
+    {
+        return 0;
+    }
+    else {
+        /* Note: (argc - 1) is used because argv[0] is './rledecode' */
+        fprintf(stderr, "Incorrect number of arguments: %d.\n", (argc - 1));
+        return -1;
+    }
+}
+
+/************************************************************
+* Desc   : Function that deligates which argument to handle
+*          to the appropriate handler function.
+*
+* Params : arg_index - the 
+*          argc - the number of given command line arguments
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
+int parse_arg(int arg_index, char *arg)
+{
+    /* Flag that determines success or failure */
+    int flag = -1;
+
+    switch(arg_index) {
+        case 1:
+            flag = handle_arg1(arg);
+            break;
+        case 2:
+            flag = handle_arg2(arg);
+            break;
+        case 3:
+            flag = handle_arg3(arg);
+            break;
+        case 4:
+            flag = handle_arg4(arg);
+            break;
+        default:
+            fprintf(stderr, "Error: parse_argument - incorrect arg_index");
+            break;
+    }
+
+    return flag;
+}
+
+/************************************************************
+* Desc   : Function that determines if argv[1] is valid or
+*          not by checking if that rle file exists. Output
+*          messages are put to the stderr stream for the
+*          user to see. This keeps the stdout stream clean.
+*
+* Params : filepath - relative path to the rle file
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
+int handle_arg1(char *filepath)
+{
+    /* Handle empty string and NULL pointer */
+    if (strcmp(filepath, "") == 0 || filepath == NULL) {
+        return -1;
+    }
+
+    fprintf(stderr, "Looking for %s...\n", filepath);
+
+    /* Determine if the rle file exists or not */
+    if (rleplay_file_exists(filepath))
+    {
+        fprintf(stderr, "%s exists. Proceeding...\n", filepath);
+    }
+    else
+    {
+        fprintf(stderr, "%s does not exist.\n", filepath);
+        return -1;
+    }    
+
+    return 0;
+}
+
+/************************************************************
+* Desc   : Function that determines if argv[1] is valid or
+*          not by checking if that rle file exists. Output
+*          messages are put to the stderr stream for the
+*          user to see. This keeps the stdout stream clean.
+*
+* Params : filepath - relative path to the rle file
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
+int rleplay_file_exists(char *filepath)
+{
+    struct stat buffer;
+    if (filepath != NULL)
+    {
+        return (stat (filepath, &buffer) >= 0); // stat returns a negative value on failure
+    }
+    return -1; // return as if stat had failed
+}
+
+/* Handler and methods for argv[2] */
+int handle_arg2(char *arg2)
+{
+    if (strcmp(arg2, "-") == 0)
+    {
+        return 1;
+    }
+    else if (is_valid_prefix(arg2))
+    {
+        return 2;
+    }
+    else
+    {
+        fprintf(stderr, "Invalid value for arg2\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+int is_valid_prefix(char *prefix)
+{
+    return (strlen(prefix) > 0);
+}
+
+/* Handler and methods for argv[3] */
+int handle_arg3(char *arg3)
+{
+    fprintf(stderr, "handle_arg3");
+    return 0;
+}
+
+/* Handler and methods for argv[4] */
+int handle_arg4(char *arg4)
+{
+    fprintf(stderr, "handle_arg4");
+    return 0;
+}
+
+
+
 
 void bypass_id_string (FILE *rlefile)
 {
@@ -282,6 +482,7 @@ void decode_to_ppm(char **argv)
     while ((c = fgetc(rlefile)) != EOF)
     {
         /* Look for the next key frame */
+        // TODO check for "E"
         if (c == key_frame_delim)
         {
             /* We've found the next key frame */
@@ -351,8 +552,8 @@ void decode_to_stdout(char **argv)
     while ((c = fgetc(rlefile)) != EOF)
     {
         /* Look for the next key frame */
-
-        if (c == key_frame_delim)
+        // TODO check for "E"
+        if (c != 'E')
         {
             /* We've found the next key frame */
             decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
@@ -377,129 +578,6 @@ void decode_to_stdout(char **argv)
     free(dimensions);
 
     fclose(rlefile);
-}
-
-int validate_args(int argc, char **argv)
-{
-    int correct_number_of_args = check_number_of_args(argc);
-    if (correct_number_of_args == -1)
-    {
-        return -1;
-    }
-
-    int arg1_is_valid = parse_arg(1, argv[1]);
-    int arg2_is_valid = parse_arg(2, argv[2]);
-
-    return ((arg1_is_valid == 0) && ((arg2_is_valid == 1) || arg2_is_valid == 2));
-}
-
-int check_number_of_args(int argc)
-{
-    if (argc <= 5 && argc >= 3)
-    {
-        return 0;
-    }
-    else {
-        fprintf(stderr, "Incorrect number of arguments: %d.\n", (argc - 1)); // (argc - 1) because argv[0] is './rledecode'
-        return -1;
-    }
-}
-
-int parse_arg(int arg_index, char *arg) {
-
-    int flag = -1;
-
-    switch(arg_index) {
-        case 1:
-            flag = handle_arg1(arg);
-            break;
-        case 2:
-            flag = handle_arg2(arg);
-            break;
-        case 3:
-            flag = handle_arg3(arg);
-            break;
-        case 4:
-            flag = handle_arg4(arg);
-            break;
-        default:
-            fprintf(stderr, "Error: parse_argument - incorrect arg_index");
-            break;
-    }
-
-    return flag;
-}
-
-/* Handler and methods for argv[1] */
-int handle_arg1(char *filepath)
-{
-    if (strcmp(filepath, "") == 0 || filepath == NULL) {
-        return -1;
-    }
-
-    // Not assuming rle files are within the 'rlefiles' directory
-    fprintf(stderr, "Looking for %s...\n", filepath);
-
-    if (rleplay_file_exists(filepath))
-    {
-        fprintf(stderr, "%s exists. Proceeding...\n", filepath);
-    }
-    else
-    {
-        fprintf(stderr, "%s does not exist.\n", filepath);
-        return -1; // it seems 'return -1' gives a SegFault
-    }    
-
-    return 0;
-}
-
-int rleplay_file_exists(char *filepath)
-{
-    struct stat buffer;
-    if (filepath != NULL)
-    {
-        return (stat (filepath, &buffer) >= 0); // stat returns a negative value on failure
-    }
-    return -1; // return as if stat had failed
-}
-
-/* Handler and methods for argv[2] */
-int handle_arg2(char *arg2)
-{
-    if (strcmp(arg2, "-") == 0)
-    {
-        return 1;
-    }
-    else if (is_valid_prefix(arg2))
-    {
-        return 2;
-    }
-    else
-    {
-        fprintf(stderr, "Invalid value for arg2\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-int is_valid_prefix(char *prefix)
-{
-    return (strlen(prefix) > 0);
-}
-
-/* Handler and methods for argv[3] */
-int handle_arg3(char *arg3)
-{
-    fprintf(stderr, "handle_arg3");
-    return 0;
-}
-
-/* Handler and methods for argv[4] */
-int handle_arg4(char *arg4)
-{
-    fprintf(stderr, "handle_arg4");
-    return 0;
 }
 
 /* UNUSED */
