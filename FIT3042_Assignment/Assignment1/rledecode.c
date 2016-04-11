@@ -5,13 +5,6 @@
 #include <sys/stat.h>
 #include "rledecode.h"
 
-#define MIN_RUN     3                   /* minimum run length to encode */
-#define MAX_RUN     (128 + MIN_RUN - 1) /* maximum run length to encode */
-#define MAX_COPY    128                 /* maximum characters to copy */
-
-/* maximum that can be read before copy block is written */
-#define MAX_READ    (MAX_COPY + MIN_RUN - 1)
-
 int rledecode(int argc, char **argv)
 {
     fprintf(stderr, "\n--- Starting rledecode ---\n");
@@ -167,6 +160,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
     int countChar;
     int currChar;
     int value_counter = 0;
+    int min_run_length = 3;
 
     while (value_counter < (width * height * 3))
     {
@@ -175,7 +169,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
 
         if (countChar < 0)
         {
-            countChar = (MIN_RUN - 1) - countChar;
+            countChar = (min_run_length - 1) - countChar;
 
             if (EOF == (currChar = fgetc(rlefile)))
             {
@@ -205,7 +199,8 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
             }
         }
     }
-    // printf("total values: %d\n", value_counter);
+    /* For show how many total values (i.e individual R, G, and B values) read for this frame */
+    fprintf(stderr, "Total frame values: %d\n", value_counter);
 }
 
 void separate_channel_values(unsigned char *key_frame_data,
@@ -251,12 +246,14 @@ void decode_to_ppm(char **argv)
         return;
     }
 
+    /* Variables for image decompression */
     int *dimensions = NULL;
     int width;
     int height;
     int image_pixels;
-    char *prefix = argv[2];
 
+    /* Variables for data output */
+    char *prefix = argv[2];
     unsigned char *red_frame_data = NULL;
     unsigned char *green_frame_data = NULL;
     unsigned char *blue_frame_data = NULL;
@@ -365,6 +362,10 @@ void decode_to_stdout(char **argv)
 
             /* Send decompressed data to stdout */
             send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
+
+            /* Separate each frame with the integer -1 */
+            int frame_separator = -1;
+            printf("%d\n", frame_separator);
         }
     }
 
@@ -381,13 +382,15 @@ void decode_to_stdout(char **argv)
 int validate_args(int argc, char **argv)
 {
     int correct_number_of_args = check_number_of_args(argc);
+    if (correct_number_of_args == -1)
+    {
+        return -1;
+    }
+
     int arg1_is_valid = parse_arg(1, argv[1]);
     int arg2_is_valid = parse_arg(2, argv[2]);
 
-    return ( (correct_number_of_args == 0) &&
-             (arg1_is_valid == 0) &&
-             ((arg2_is_valid == 1) || arg2_is_valid == 2)
-           );
+    return ((arg1_is_valid == 0) && ((arg2_is_valid == 1) || arg2_is_valid == 2));
 }
 
 int check_number_of_args(int argc)
