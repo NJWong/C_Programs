@@ -30,17 +30,22 @@ int rledecode(int argc, char **argv)
     }
 
     /* Decode the .rle file and put to output defined in arg2 */
-    if (strcmp(argv[2], "-") == 0)
-    {
-        decode_to_stdout(argv);
-    }
-    else
-    {
-        decode_to_ppm(argv);
-    }
+    // if (strcmp(argv[2], "-") == 0)
+    // {
+    //     decode_to_stdout(argv);
+    // }
+    // else
+    // {
+    //     decode_to_ppm(argv);
+    // }
+    int to_ppm = !(strcmp(argv[2], "-") == 0);
+    decode_rlefile(argv, to_ppm);
 
     return 0;
 }
+/************************************************************
+*               COMMAND LINE ARGUMENT VALIDATION
+************************************************************/
 
 /************************************************************
 * Desc   : Function that checks whether the command line
@@ -168,26 +173,39 @@ int handle_arg1(char *filepath)
 }
 
 /************************************************************
-* Desc   : Function that determines if argv[1] is valid or
-*          not by checking if that rle file exists. Output
-*          messages are put to the stderr stream for the
-*          user to see. This keeps the stdout stream clean.
+* Desc   : Function that checks whether or not a file exists
+*          using the 'stat' system call. If 'stat' is called
+*          on a file that does not exist, then it failes.
+*          Thus, we can easily check a file's existance.
 *
 * Params : filepath - relative path to the rle file
 *           
-* Return : 0 for success, -1 for failure.
+* Return : positive int for success, negative int for failure.
 ************************************************************/
 int rleplay_file_exists(char *filepath)
 {
     struct stat buffer;
+
+    /* First check if NULL */
     if (filepath != NULL)
     {
-        return (stat (filepath, &buffer) >= 0); // stat returns a negative value on failure
+        /* Note: stat returns a negative value on failure */
+        return (stat (filepath, &buffer) >= 0);
     }
-    return -1; // return as if stat had failed
+
+    /* If NULL, then we return act as if stat failed */
+    return -1;
 }
 
-/* Handler and methods for argv[2] */
+/************************************************************
+* Desc   : Function that determines if argv[2] is valid or
+*          not by checking if it is a dash "-" or a valid
+*          prefix string.
+*
+* Params : arg2 - the second command line argument we get
+*           
+* Return : 1 for "-", 2 for valid prefix, -1 for invalid prefix.
+************************************************************/
 int handle_arg2(char *arg2)
 {
     if (strcmp(arg2, "-") == 0)
@@ -203,31 +221,162 @@ int handle_arg2(char *arg2)
         fprintf(stderr, "Invalid value for arg2\n");
         return -1;
     }
-
-    return 0;
 }
 
+/************************************************************
+* Desc   : Function that determines if the prefix is valid or
+*          not. At this stage, the only invalid prefix is the
+*          empty string.
+*
+* Params : prefix - the prefix string we want to validate
+*           
+* Return : 1 for success, 0 for failure.
+************************************************************/
 int is_valid_prefix(char *prefix)
 {
     return (strlen(prefix) > 0);
 }
 
-/* Handler and methods for argv[3] */
+/************************************************************
+* Desc   : Function that determines if argv[3] is valid or
+*          not by checking if it matches one of the two
+*          optional arguments.
+*
+* Params : arg3 - the third command line argument we get
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
 int handle_arg3(char *arg3)
 {
     fprintf(stderr, "handle_arg3");
     return 0;
 }
 
-/* Handler and methods for argv[4] */
+/************************************************************
+* Desc   : Function that determines if argv[4] is valid or
+*          not by checking if it matches one of the two
+*          optional arguments.
+*
+* Params : arg4 - the third command line argument we get
+*           
+* Return : 0 for success, -1 for failure.
+************************************************************/
 int handle_arg4(char *arg4)
 {
     fprintf(stderr, "handle_arg4");
     return 0;
 }
 
+/************************************************************
+*                      RLE FILE DECODING
+************************************************************/
 
+void decode_rlefile(char **argv, int to_ppm)
+{
+    FILE *rlefile = fopen(argv[1], "rb");
+    if (rlefile == NULL)
+    {
+        fprintf(stderr, "*rlefile is a null pointer. Exiting.\n");
+        return;
+    }
 
+    /* Variables for image decompression */
+    int *dimensions = NULL;
+    int width;
+    int height;
+    int image_pixels;
+
+    /* Variables for data output */
+    char *prefix = argv[2];
+    unsigned char *red_frame_data = NULL;
+    unsigned char *green_frame_data = NULL;
+    unsigned char *blue_frame_data = NULL;
+    unsigned char *key_frame_data = NULL;
+
+    /* Determine the size of the image in the rle video file */
+    dimensions = (int *) malloc(2*sizeof(int));
+    get_dimensions(rlefile, dimensions);
+    width = dimensions[0];
+    height = dimensions[1];
+    image_pixels = width * height;
+    fprintf(stderr, "width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
+
+    /* Initialise the arrays to store decompressed frame data */
+    red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+    green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+    blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+
+    key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
+
+    char c = '\0';
+    int frame_counter = 1;
+
+    /* Read characters from file until there is nothing else to read */
+    while ((c = fgetc(rlefile)) != EOF)
+    {
+        /* Look for the next key frame */
+        // TODO check for "E"
+        if (c != 'E')
+        {
+            /* We've found the next key frame */
+            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
+
+            /* Copy separate channel values into their own arrays */
+            separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
+
+            if (to_ppm)
+            {
+                /* Send decompressed data to a ppm file */
+                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);    
+                frame_counter++;
+            }
+            else
+            {
+                /* Send decompressed data to stdout */
+                send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
+
+                /* Separate each frame with the integer -1 */
+                int frame_separator = -1;
+                /* Note: printf() outputs to the stdout stream */
+                printf("%d\n", frame_separator); 
+            }            
+        }
+    }
+
+    /* Cleanup */
+    free(dimensions);
+    free(red_frame_data);
+    free(green_frame_data);
+    free(blue_frame_data);
+    free(key_frame_data);
+
+    fclose(rlefile);
+}
+
+void get_dimensions(FILE *rlefile, int *dimensions)
+{
+    /* Allocate space to store the width and height properties read from the rlefile. */
+    /* It's reasonable to assume that neither width nor height will not exceed 5 digits. */
+    char *width_string = (char *) malloc(5*sizeof(char));
+    char *height_string = (char *) malloc(5*sizeof(char));
+
+    /* Read in characters to get bypass the rle id-string */
+    bypass_id_string(rlefile);
+
+    /* Get the width in pixels and store in a char array */
+    get_width(rlefile, width_string);
+
+    /* Get the height in pixels and store in a char array */
+    get_height(rlefile, height_string);
+
+    /* Convert width_string and height_string to int values and store them in an array */
+    dimensions[0] = atoi(width_string);
+    dimensions[1] = atoi(height_string);
+
+    /* Cleanup */
+    free(width_string);
+    free(height_string);
+}
 
 void bypass_id_string (FILE *rlefile)
 {
@@ -257,101 +406,6 @@ void get_height(FILE *rlefile, char *height_string)
     {
         height_string[strlen(height_string)] = next_char; // TODO explain this
     }
-}
-
-void get_dimensions(FILE *rlefile, int *dimensions)
-{
-    /* Allocate space to store the width and height properties read from the rlefile. */
-    /* It's reasonable to assume that neither width nor height will not exceed 5 digits. */
-    char *width_string = (char *) malloc(5*sizeof(char));
-    char *height_string = (char *) malloc(5*sizeof(char));
-
-    /* Read in characters to get bypass the rle id-string */
-    bypass_id_string(rlefile);
-
-    /* Get the width in pixels and store in a char array */
-    get_width(rlefile, width_string);
-
-    /* Get the height in pixels and store in a char array */
-    get_height(rlefile, height_string);
-
-    /* Convert width_string and height_string to int values and store them in an array */
-    dimensions[0] = atoi(width_string);
-    dimensions[1] = atoi(height_string);
-
-    /* Cleanup */
-    free(width_string);
-    free(height_string);
-}
-
-/* Send one frame's worth of data to stdout */
-void send_frame_to_stdout(int width, int height,
-                          unsigned char *red_frame_data,
-                          unsigned char *green_frame_data,
-                          unsigned char *blue_frame_data)
-{
-    int pixel_index = 0;
-
-    for (int h = 1; h <= height; h++)
-    {
-        for (int w = 1; w <= width; w++)
-        {
-            fprintf(stdout, "%c", red_frame_data[pixel_index]);
-            fprintf(stdout, "%c", green_frame_data[pixel_index]);
-            fprintf(stdout, "%c", blue_frame_data[pixel_index]);
-            pixel_index++;
-        }
-    }
-}
-
-/* Write one frame's worth of data to a ppm file */
-void send_frame_to_ppm(int width, int height,
-                       unsigned char *red_frame_data,
-                       unsigned char *green_frame_data,
-                       unsigned char *blue_frame_data,
-                       char *prefix,  int frame_counter)
-{
-    /* Assuming a filename will not be more than 50 characters */
-    char *filename = (char *) malloc(50 * sizeof(char));
-
-    sprintf(filename, "%s-%04d.ppm", prefix, frame_counter);
-
-    fprintf(stderr, "Wrote frame #%d\n", frame_counter);
-
-    FILE *outFile = fopen(filename, "w");
-
-    if (outFile == NULL)
-    {
-        fprintf(stderr, "Pointer to outfile is NULL. Exiting.\n");
-        return;
-    }
-
-    char *dimension_string = (char *) malloc(10 * sizeof(char));
-
-    sprintf(dimension_string, "%d %d", width, height);
-
-    fputs("P6\n", outFile);
-    fputs(dimension_string, outFile);
-    fputs("\n255\n", outFile);
-
-    int pixel_index = 0;
-
-    for (int h = 1; h <= height; h++)
-    {
-        for (int w = 1; w <= width; w++)
-        {
-            fputc(red_frame_data[pixel_index], outFile);
-            fputc(green_frame_data[pixel_index], outFile);
-            fputc(blue_frame_data[pixel_index], outFile);
-            pixel_index++;
-        }
-    }
-
-    /* Cleanup */
-    free(filename);
-    free(dimension_string);
-
-    fclose(outFile);
 }
 
 /* Modified version of Michael Dipperstein's PackBits algorithm variant - http://michael.dipperstein.com/rle/index.html */
@@ -435,149 +489,74 @@ void separate_channel_values(unsigned char *key_frame_data,
     // printf("separate_channel_values end\n");
 }
 
-void decode_to_ppm(char **argv)
+/* Write one frame's worth of data to a ppm file */
+void send_frame_to_ppm(int width, int height,
+                       unsigned char *red_frame_data,
+                       unsigned char *green_frame_data,
+                       unsigned char *blue_frame_data,
+                       char *prefix,  int frame_counter)
 {
-    fprintf(stderr, "Decode to ppm\n");
+    /* Assuming a filename will not be more than 50 characters */
+    char *filename = (char *) malloc(50 * sizeof(char));
 
-    FILE *rlefile = fopen(argv[1], "rb");
-    if (rlefile == NULL)
+    sprintf(filename, "%s-%04d.ppm", prefix, frame_counter);
+
+    fprintf(stderr, "Wrote frame #%d\n", frame_counter);
+
+    FILE *outFile = fopen(filename, "w");
+
+    if (outFile == NULL)
     {
-        fprintf(stderr, "*rlefile is a null pointer. Exiting.\n");
+        fprintf(stderr, "Pointer to outfile is NULL. Exiting.\n");
         return;
     }
 
-    /* Variables for image decompression */
-    int *dimensions = NULL;
-    int width;
-    int height;
-    int image_pixels;
+    char *dimension_string = (char *) malloc(10 * sizeof(char));
 
-    /* Variables for data output */
-    char *prefix = argv[2];
-    unsigned char *red_frame_data = NULL;
-    unsigned char *green_frame_data = NULL;
-    unsigned char *blue_frame_data = NULL;
-    unsigned char *key_frame_data = NULL;
+    sprintf(dimension_string, "%d %d", width, height);
 
-    /* Determine the size of the image in the rle video file */
-    dimensions = (int *) malloc(2*sizeof(int));
-    get_dimensions(rlefile, dimensions);
-    width = dimensions[0];
-    height = dimensions[1];
-    image_pixels = width * height;
-    fprintf(stderr, "width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
+    fputs("P6\n", outFile);
+    fputs(dimension_string, outFile);
+    fputs("\n255\n", outFile);
 
-    /* Initialise the arrays to store decompressed frame data */
-    red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
-    green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
-    blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+    int pixel_index = 0;
 
-    key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
-
-    const char key_frame_delim = 'K';
-    char c = '\0';
-    int frame_counter = 1;
-
-    /* Read characters from file until there is nothing else to read */
-    while ((c = fgetc(rlefile)) != EOF)
+    for (int h = 1; h <= height; h++)
     {
-        /* Look for the next key frame */
-        // TODO check for "E"
-        if (c == key_frame_delim)
+        for (int w = 1; w <= width; w++)
         {
-            /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
-
-            /* Copy separate channel values into their own arrays */
-            separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
-
-            /* Send decompressed data to a ppm file */
-            send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
-
-            frame_counter++;
+            fputc(red_frame_data[pixel_index], outFile);
+            fputc(green_frame_data[pixel_index], outFile);
+            fputc(blue_frame_data[pixel_index], outFile);
+            pixel_index++;
         }
     }
 
     /* Cleanup */
-    free(dimensions);
-    free(red_frame_data);
-    free(green_frame_data);
-    free(blue_frame_data);
-    free(key_frame_data);
+    free(filename);
+    free(dimension_string);
 
-    fclose(rlefile);
+    fclose(outFile);
 }
 
-void decode_to_stdout(char **argv)
+/* Send one frame's worth of data to stdout */
+void send_frame_to_stdout(int width, int height,
+                          unsigned char *red_frame_data,
+                          unsigned char *green_frame_data,
+                          unsigned char *blue_frame_data)
 {
-    fprintf(stderr, "Decode to stdout\n");
+    int pixel_index = 0;
 
-    /* Open the rle video file and test the pointer is not NULL */
-    FILE *rlefile = fopen(argv[1], "rb");
-    if (rlefile == NULL)
+    for (int h = 1; h <= height; h++)
     {
-        fprintf(stderr, "*rlefile is a null pointer. Exiting.\n");
-        return;
-    }
-
-    int *dimensions = NULL;
-    int width;
-    int height;
-    int image_pixels;
-
-    unsigned char *red_frame_data = NULL;
-    unsigned char *green_frame_data = NULL;
-    unsigned char *blue_frame_data = NULL;
-    unsigned char *key_frame_data = NULL;
-
-    /* Determine the size of the image in the rle video file */
-    dimensions = (int *) malloc(2*sizeof(int));
-    get_dimensions(rlefile, dimensions);
-    width = dimensions[0];
-    height = dimensions[1];
-    image_pixels = width * height;
-    fprintf(stderr, "width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
-
-    /* Initialise the arrays to store decompressed frame data */
-    red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
-    green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
-    blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
-
-    key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
-
-    const char key_frame_delim = 'K';
-    char c = '\0';
-
-    /* Read characters from file until there is nothing else to read */
-    while ((c = fgetc(rlefile)) != EOF)
-    {
-        /* Look for the next key frame */
-        // TODO check for "E"
-        if (c != 'E')
+        for (int w = 1; w <= width; w++)
         {
-            /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
-
-            /* Copy separate channel values into their own arrays */
-            separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
-
-            /* Send decompressed data to stdout */
-            send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
-
-            /* Separate each frame with the integer -1 */
-            int frame_separator = -1;
-            printf("%d\n", frame_separator);
+            fprintf(stdout, "%c", red_frame_data[pixel_index]);
+            fprintf(stdout, "%c", green_frame_data[pixel_index]);
+            fprintf(stdout, "%c", blue_frame_data[pixel_index]);
+            pixel_index++;
         }
     }
-
-    /* Cleanup */
-    free(red_frame_data);
-    free(green_frame_data);
-    free(blue_frame_data);
-    free(key_frame_data);
-    free(dimensions);
-
-    fclose(rlefile);
 }
 
 /* UNUSED */
