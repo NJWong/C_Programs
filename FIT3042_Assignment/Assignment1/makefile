@@ -15,7 +15,11 @@ arg_parser_test: tests/arg_parser_test.c
 rledecode_test: tests/rledecode_test.c
 	$(CC) $(CFLAGS) $(MODE) -o tests/rledecode_test tests/rledecode_test.c
 
-clean: clean_bins clean_tests
+clean: clean_bins clean_output clean_tests
+
+# Clean up output ppm files
+clean_output:
+	$(RM) ./*.ppm
 
 # Clean up compiled output files for program files
 clean_bins:

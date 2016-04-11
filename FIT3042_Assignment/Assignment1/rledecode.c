@@ -70,7 +70,10 @@ int * get_dimensions(FILE *rlefile)
 }
 
 /* Send one frame's worth of data to stdout */
-void send_frame_to_stdout(int width, int height, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data)
+void send_frame_to_stdout(int width, int height,
+                          unsigned char *red_frame_data,
+                          unsigned char *green_frame_data,
+                          unsigned char *blue_frame_data)
 {
     int pixel_index = 0;
 
@@ -87,27 +90,18 @@ void send_frame_to_stdout(int width, int height, unsigned char *red_frame_data, 
 }
 
 /* Write one frame's worth of data to a ppm file */
-void send_frame_to_ppm(int width, int height, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, char *prefix,  int frame_counter)
+void send_frame_to_ppm(int width, int height,
+                       unsigned char *red_frame_data,
+                       unsigned char *green_frame_data,
+                       unsigned char *blue_frame_data,
+                       char *prefix,  int frame_counter)
 {
     // printf("send_frame_to_ppm start\n");
-    char *filename = NULL;
-    // sprintf(filename, "%s-%d.ppm", prefix, frame_counter);
+    /* Assuming a filename will not be more than 50 characters */
+    char *filename = (char *) malloc(50 * sizeof(char));
+    sprintf(filename, "%s-%d.ppm", prefix, frame_counter);
+
     printf("frame_counter: %d\n", frame_counter);
-    switch(frame_counter)
-    {
-        case 0:
-            filename = "test0.ppm";
-            break;
-        case 1:
-            filename = "test1.ppm";
-            break;
-        case 2:
-            filename = "test2.ppm";
-            break;
-        case 3:
-            filename = "test3.ppm";
-            break;
-    }
 
     FILE *outFile = fopen(filename, "w");
     // FILE *outFile = fopen("testout.ppm", "w");
@@ -186,7 +180,11 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
     // printf("decompress_and_store_key_frame_data end\n");
 }
 
-void separate_channel_values(unsigned char *key_frame_data, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, int image_pixels)
+void separate_channel_values(unsigned char *key_frame_data,
+                             unsigned char *red_frame_data,
+                             unsigned char *green_frame_data,
+                             unsigned char *blue_frame_data,
+                             int image_pixels)
 {
     // printf("separate_channel_values start\n");
     int r_index = 0;
@@ -269,9 +267,9 @@ void decode_to_ppm(char **argv)
 
             /* Send decompressed data to a ppm file */
             send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
-        }
 
-        frame_counter++;
+            frame_counter++;
+        }
     }
 
     /* Cleanup */
