@@ -39,23 +39,51 @@ int rledecode(int argc, char **argv)
 // TODO possible split this into get_width and get_height
 int * get_dimensions(FILE *rlefile)
 {
-    char *width_string = (char*) malloc(4*sizeof(char));
-    char *height_string = (char*) malloc(4*sizeof(char));
+    char *width_string = (char *) malloc(5*sizeof(char));
+    char *height_string = (char *) malloc(5*sizeof(char));
 
-    int line_count = 0;
-
-    while (line_count < 3)
+    char next_char;
+    
+    /* Read in characters to get bypass the rle id-string */
+    while((next_char = fgetc(rlefile)) != '\n')
     {
-        char line[10]; //TODO malloc instead
-        fgets(line, sizeof line, rlefile);
-        if (line_count == 2)
-        {
-            // FIX ME because the dimensions doesn't always have 4 characters
-            strncpy(width_string, line, 4); 
-            strncpy(height_string, &line[5], 4);
-        }
-        line_count++;
+        continue;
     }
+
+    /* Extract image width in pixels from rle properties */
+    while((next_char = fgetc(rlefile)) != ' ')
+    {
+        width_string[strlen(width_string)] = next_char; // TODO explain this
+    }
+    
+    /* Extract image height in pixels from rle properties */
+    while((next_char = fgetc(rlefile)) != '\n')
+    {
+        height_string[strlen(height_string)] = next_char; // TODO explain this
+    }
+
+    // int line_count = 0;
+
+    // while (line_count < 3)
+    // {
+    //     /* Reasonable to assume no more than 4 digits per width and height */
+    //     int max_chars = 10;
+    //     char *line = (char *) malloc(max_chars*sizeof(char));
+
+    //     fgets(line, max_chars, rlefile);
+    //     if (line_count == 2)
+    //     {
+    //         for (int i = 0; i < 10; i++)
+    //         {
+    //             printf("i: %d, c: %c\n", i, line[i]);
+    //         }
+
+    //         strncpy(width_string, line, 4);
+    //         strncpy(height_string, &line[5], 4);
+    //     }
+    //     line_count++;
+    //     free(line);
+    // }
 
     int *dimensions = (int *) malloc(2*sizeof(int));
 
@@ -65,6 +93,7 @@ int * get_dimensions(FILE *rlefile)
     /* Cleanup */
     free(width_string);
     free(height_string);
+    
 
     return dimensions;
 }
@@ -104,7 +133,6 @@ void send_frame_to_ppm(int width, int height,
     printf("frame_counter: %d\n", frame_counter);
 
     FILE *outFile = fopen(filename, "w");
-    // FILE *outFile = fopen("testout.ppm", "w");
 
     if (outFile == NULL)
     {
@@ -112,7 +140,15 @@ void send_frame_to_ppm(int width, int height,
         return;
     }
 
-    fputs("P6\n1200 1600\n255\n", outFile);
+    char *dimension_string = (char *) malloc(10 * sizeof(char));
+
+    sprintf(dimension_string, "%d %d", width, height);
+
+    fputs("P6\n", outFile);
+    fputs(dimension_string, outFile);
+    fputs("\n255\n", outFile);
+
+    // fputs("P6\n1200 1600\n255\n", outFile);
 
     int pixel_index = 0;
 
@@ -127,12 +163,16 @@ void send_frame_to_ppm(int width, int height,
         }
     }
 
+    /* Cleanup */
+    free(filename);
+    free(dimension_string);
+
     fclose(outFile);
     // printf("send_frame_to_ppm end\n");
 }
 
 /* Modified version of Michael Dipperstein's PackBits algorithm variant - http://michael.dipperstein.com/rle/index.html */
-void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data)
+void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data, int width, int height)
 {
     // printf("decompress_and_store_key_frame_data start\n");
     int countChar;
@@ -140,7 +180,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
     int value_counter = 0;
 
     // FIX ME this is hardcoded for the sonic images
-    while (value_counter < 5760000)
+    while (value_counter < (width * height * 3))
     {
         countChar = fgetc(rlefile);
         countChar = (char)countChar;
@@ -250,7 +290,7 @@ void decode_to_ppm(char **argv)
 
     const char key_frame_delim = 'K';
     char c = '\0';
-    int frame_counter = 0;
+    int frame_counter = 1;
 
     /* Read characters from file until there is nothing else to read */
     while ((c = fgetc(rlefile)) != EOF)
@@ -260,7 +300,7 @@ void decode_to_ppm(char **argv)
         {
             printf("WE HAVE A FRAME\n");
             /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data);
+            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
 
             /* Copy separate channel values into their own arrays */
             separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
@@ -329,7 +369,7 @@ void decode_to_stdout(char **argv)
         {
             printf("WE HAVE A FRAME\n");
             /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data);
+            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
 
             /* Copy separate channel values into their own arrays */
             separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
