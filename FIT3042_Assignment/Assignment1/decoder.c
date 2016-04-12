@@ -54,6 +54,10 @@ void decode_rlefile(char **argv, int num_of_mods)
     unsigned char *blue_frame_data = NULL;
     unsigned char *key_frame_data = NULL;
 
+    unsigned char *prev_red_frame_data = NULL;
+    unsigned char *prev_green_frame_data = NULL;
+    unsigned char *prev_blue_frame_data = NULL;
+
     /* Determine the size of the image in the rle video file */
     dimensions = (int *) malloc(2*sizeof(int));
     if (dimensions == NULL)
@@ -120,6 +124,54 @@ void decode_rlefile(char **argv, int num_of_mods)
                 /* Send decoded data to a ppm file */
                 send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
                 frame_counter++;
+
+                /* If we are using interpolation to insert tween frames, then insert 'tween_factor' frames */
+                if (tween_mod)
+                {
+                    /* Skip first frame, but save data */
+                    if (prev_red_frame_data == NULL)
+                    {
+                        /* Allocate memory to store the current frame for the interpolation */
+                        prev_red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+                        prev_green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+                        prev_blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+
+                        /* Save the current frame data channels individually */
+                        for (int i = 0; i < image_pixels; i ++)
+                        {
+                            prev_red_frame_data[i] = red_frame_data[i];
+                            prev_green_frame_data[i] = green_frame_data[i];
+                            prev_blue_frame_data[i] = blue_frame_data[i];
+                        }
+                    }
+                    /* For now, insert one tween frame */
+                    else
+                    {
+                        for (int tween_count = 0; tween_count < tween_factor; tween_count++)
+                        {
+                            /* Save tween channel data to temp arrays */
+                            unsigned char *tween_red_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+                            unsigned char *tween_green_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+                            unsigned char *tween_blue_frame_data = (unsigned char *) malloc(image_pixels * sizeof(unsigned char));
+
+                            for (int i = 0; i < image_pixels; i++)
+                            {
+                                tween_red_frame_data[i] = (red_frame_data[i] + prev_red_frame_data[i]) / (tween_factor+1)/(tween_count+1);
+                                tween_green_frame_data[i] = (green_frame_data[i] + prev_green_frame_data[i]) / (tween_factor+1)/(tween_count+1);
+                                tween_blue_frame_data[i] = (blue_frame_data[i] + prev_blue_frame_data[i]) / (tween_factor+1)/(tween_count+1);
+                            }
+
+                            /* Send tween data to a ppm file */
+                            send_frame_to_ppm(width, height, tween_red_frame_data, tween_green_frame_data, tween_blue_frame_data, prefix, frame_counter);
+                            frame_counter++;
+
+                            free(tween_red_frame_data);
+                            free(tween_green_frame_data);
+                            free(tween_blue_frame_data);
+                        }
+                    }
+                    
+                }
             }
         }
     }
@@ -130,6 +182,10 @@ void decode_rlefile(char **argv, int num_of_mods)
     free(red_frame_data);
     free(green_frame_data);
     free(blue_frame_data);
+
+    free(prev_red_frame_data);
+    free(prev_green_frame_data);
+    free(prev_blue_frame_data);
     
     fclose(rlefile);
 }
