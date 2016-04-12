@@ -223,7 +223,7 @@ int is_valid_prefix(char *prefix)
 int handle_arg3(char *arg3, char *factor)
 {
     /* If arg3 and the  is valid then return 0 */
-    if ((strcmp(arg3, "--scale") == 0) && (atoi(factor) > 0))
+    if ((strcmp(arg3, "--scale") == 0 || strcmp(arg3, "--tween") == 0) && (atoi(factor) > 0))
     {
         return 0;
     }
