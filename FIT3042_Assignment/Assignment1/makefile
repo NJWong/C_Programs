@@ -4,8 +4,8 @@ MODE   = -std=c99
 
 all: clean_bins rledecode
 
-rledecode: arg_validator.c rledecode.c driver.c
-	$(CC) $(CFLAGS) $(MODE) -o rledecode arg_validator.c rledecode.c driver.c
+rledecode: decoder.c arg_validator.c rledecode.c driver.c
+	$(CC) $(CFLAGS) $(MODE) -o rledecode decoder.c arg_validator.c rledecode.c driver.c
 
 test: clean_tests rledecode_test
 
