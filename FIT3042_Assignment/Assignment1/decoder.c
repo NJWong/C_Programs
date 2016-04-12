@@ -5,10 +5,6 @@
 #include <sys/stat.h>
 #include "decoder.h"
 
-// TODO move to header file
-void scale_frame_data(unsigned char **scaled_data, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, int scalefactor, int image_pixels, int width, int height);
-void save_current_frame(unsigned char *prev_red_frame_data, unsigned char *prev_green_frame_data, unsigned char *prev_blue_frame_data, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, int image_pixels);
-
 /************************************************************
 *                      RLE FILE DECODING
 ************************************************************/
