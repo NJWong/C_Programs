@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include "rledecode.h"
 #include "arg_validator.h"
 #include "decoder.h"
@@ -45,14 +44,3 @@ int rledecode(int argc, char **argv)
 
     return 0;
 }
-
-/* UNUSED */
-
-
-// void apply_tween() {
-
-// }
-
-// void tweenfactor_is_valid() {
-
-// }

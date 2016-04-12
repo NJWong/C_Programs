@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "rledecode.c"
+#include "decoder.c"
+#include "arg_validator.c"
 #include "minunit.h"
 
 int tests_run = 0;
 
-/* rledecode tests */
-
-static char * rledecode_test1()
+/*********************************
+*    VALIDATE ARGUMENTS TESTS    *
+*********************************/
+static char * validate_args_test1()
 {
-    printf("\n***** rledecode_test1 LOG *****\n");
+    printf("\n***** validate_args_test1 LOG *****\n");
     int argc = 3;
     char* argv[argc + 1];
 
@@ -17,13 +20,13 @@ static char * rledecode_test1()
     argv[1] = "valid_filename.rle";
     argv[2] = "valid_prefix";
 
-    mu_assert("\nError: rledecode_test1\n", rledecode(argc, argv) == 0);
+    mu_assert("\nError: validate_args_test1\n", validate_args(argc, argv) == 0);
     return 0;
 }
 
-static char * rledecode_test2()
+static char * validate_args_test2()
 {
-    printf("\n***** rledecode_test2 LOG *****\n");
+    printf("\n***** validate_args_test2 LOG *****\n");
     int argc = 3;
     char* argv[argc + 1];
 
@@ -31,26 +34,26 @@ static char * rledecode_test2()
     argv[1] = "valid_filename.rle";
     argv[2] = "-";
 
-    mu_assert("\nError: rledecode_test2\n", rledecode(argc, argv) == 0);
+    mu_assert("\nError: validate_args_test2\n", validate_args(argc, argv) == 0);
     return 0;
 }
 
-static char * rledecode_test3()
+static char * validate_args_test3()
 {
-    printf("\n***** rledecode_test3 LOG *****\n");
+    printf("\n***** validate_args_test3 LOG *****\n");
     int argc = 2;
     char* argv[argc + 1];
 
     argv[0] = "./rledecode";
     argv[1] = "valid_filename.rle";
 
-    mu_assert("\nError: rledecode_test3\n", rledecode(argc, argv) != 0);
+    mu_assert("\nError: validate_args_test3\n", validate_args(argc, argv) != 0);
     return 0;
 }
 
-static char * rledecode_test4()
+static char * validate_args_test4()
 {
-    printf("\n***** rledecode_test4 LOG *****\n");
+    printf("\n***** validate_args_test4 LOG *****\n");
     int argc = 3;
     char* argv[argc + 1];
 
@@ -58,13 +61,13 @@ static char * rledecode_test4()
     argv[1] = "invalid_filename.rle";
     argv[2] = "valid_prefix";
 
-    mu_assert("\nError: rledecode_test4\n", rledecode(argc, argv) != 0);
+    mu_assert("\nError: validate_args_test4\n", validate_args(argc, argv) != 0);
     return 0;
 }
 
-static char * rledecode_test5()
+static char * validate_args_test5()
 {
-    printf("\n***** rledecode_test5 LOG *****\n");
+    printf("\n***** validate_args_test5 LOG *****\n");
     int argc = 3;
     char* argv[argc + 1];
 
@@ -72,13 +75,13 @@ static char * rledecode_test5()
     argv[1] = "valid_filename.rle";
     argv[2] = "";
 
-    mu_assert("\nError: rledecode_test5\n", rledecode(argc, argv) != 0);
+    mu_assert("\nError: validate_args_test5\n", validate_args(argc, argv) != 0);
     return 0;
 }
 
-static char * rledecode_test6()
+static char * validate_args_test6()
 {
-    printf("\n***** rledecode_test6 LOG *****\n");
+    printf("\n***** validate_args_test6 LOG *****\n");
     int argc = 3;
     char* argv[argc + 1];
 
@@ -86,19 +89,118 @@ static char * rledecode_test6()
     argv[1] = "invalid_filename.rle";
     argv[2] = "";
 
-    mu_assert("\nError: rledecode_test6\n", rledecode(argc, argv) != 0);
+    mu_assert("\nError: validate_args_test6\n", validate_args(argc, argv) != 0);
+    return 0;
+}
+
+static char * validate_args_test7()
+{
+    printf("\n***** validate_args_test7 LOG *****\n");
+    int argc = 4;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--scale";
+
+    mu_assert("\nError: validate_args_test7\n", validate_args(argc, argv) != 0);
+    return 0;
+}
+
+static char * validate_args_test8()
+{
+    printf("\n***** validate_args_test8 LOG *****\n");
+    int argc = 5;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--scale";
+    argv[4] = "1";
+
+    mu_assert("\nError: validate_args_test8\n", validate_args(argc, argv) == 0);
+    return 0;
+}
+
+static char * validate_args_test9()
+{
+    printf("\n***** validate_args_test9 LOG *****\n");
+    int argc = 4;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--tween";
+
+    mu_assert("\nError: validate_args_test9\n", validate_args(argc, argv) != 0);
+    return 0;
+}
+
+static char * validate_args_test10()
+{
+    printf("\n***** validate_args_test10 LOG *****\n");
+    int argc = 5;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--tween";
+    argv[4] = "1";
+
+    mu_assert("\nError: validate_args_test10\n", validate_args(argc, argv) == 0);
+    return 0;
+}
+
+static char * validate_args_test11()
+{
+    printf("\n***** validate_args_test11 LOG *****\n");
+    int argc = 5;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--scale";
+    argv[4] = "-1";
+
+    mu_assert("\nError: validate_args_test11\n", validate_args(argc, argv) != 0);
+    return 0;
+}
+
+static char * validate_args_test12()
+{
+    printf("\n***** validate_args_test12 LOG *****\n");
+    int argc = 5;
+    char* argv[argc + 1];
+
+    argv[0] = "./rledecode";
+    argv[1] = "valid_filename.rle";
+    argv[2] = "valid_prefix";
+    argv[3] = "--tween";
+    argv[4] = "-1";
+
+    mu_assert("\nError: validate_args_test12\n", validate_args(argc, argv) != 0);
     return 0;
 }
 
 static char * all_tests()
 {
-    mu_run_test(rledecode_test1);
-    mu_run_test(rledecode_test2);
-    mu_run_test(rledecode_test3);
-    mu_run_test(rledecode_test4);
-    mu_run_test(rledecode_test5);
-    mu_run_test(rledecode_test6);
-
+    mu_run_test(validate_args_test1);
+    mu_run_test(validate_args_test2);
+    mu_run_test(validate_args_test3);
+    mu_run_test(validate_args_test4);
+    mu_run_test(validate_args_test5);
+    mu_run_test(validate_args_test6);
+    mu_run_test(validate_args_test7);
+    mu_run_test(validate_args_test8);
+    mu_run_test(validate_args_test9);
+    mu_run_test(validate_args_test10);
+    mu_run_test(validate_args_test11);
+    mu_run_test(validate_args_test12);
     return 0;
 }
 
