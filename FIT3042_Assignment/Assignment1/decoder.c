@@ -5,6 +5,9 @@
 #include <sys/stat.h>
 #include "decoder.h"
 
+// TODO move to header file
+void scale_frame_data(unsigned char **scaled_data, unsigned char *red_frame_data, unsigned char *green_frame_data, unsigned char *blue_frame_data, int scalefactor, int image_pixels, int width, int height);
+
 /************************************************************
 *                      RLE FILE DECODING
 ************************************************************/
@@ -70,9 +73,7 @@ void decode_rlefile(char **argv, int num_of_mods)
         printf("scale: %d\n", scalefactor);
 
         /* Scale the total number of pixels that we need to 'malloc' for */
-        image_pixels = (scalefactor * (width - 1) + 1) * (scalefactor * (height - 1) + 1);
     }
-    fprintf(stderr, "scaled_pixels:%d\n", image_pixels);
 
     /* Initialise the arrays to store decompressed frame data */
     key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
@@ -99,28 +100,56 @@ void decode_rlefile(char **argv, int num_of_mods)
         if (c != 'E')
         {
             /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data, image_pixels, scalefactor);
+            decompress_and_store_key_frame_data(rlefile, key_frame_data, image_pixels);
 
             /* Copy separate channel values into their own arrays */
             separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
 
-            /* Output using the method specified in argv[2] */
-            if (to_stdout)
+            /* If we are scaling, then scale the individual channel values */
+            if (scale_mod)
             {
-                /* Send decompressed data to stdout */
-                send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
+                /* Note: '--scale 1' in effect does nothing */
+                if (scalefactor != 1)
+                {
+                    /* Allocate for width */
+                    unsigned char **scaled_data = (unsigned char **) malloc(((scalefactor * (width - 1)) + 1) * sizeof(unsigned char*));
 
-                /* Separate each frame with the integer -1 */
-                int frame_separator = -1;
-                /* Note: printf() outputs to the stdout stream */
-                printf("%d\n", frame_separator);   
+                    /* Allocate for height */
+                    for (int row = 0; row < ((scalefactor * (width - 1)) + 1); row++)
+                    {
+                        scaled_data[row] = (unsigned char *) malloc(((scalefactor * (height - 1)) + 1) * sizeof(unsigned char));
+                    }
+
+                    /* Scale the decoded image to the specified scalefactor */
+                    scale_frame_data(scaled_data, red_frame_data, green_frame_data, blue_frame_data, scalefactor, image_pixels, width, height);
+
+                    /* Send scaled decoded data to specified output stream*/
+                    printf("frame sent to output\n");
+
+                    free(scaled_data);
+                }
+                
             }
             else
             {
-                /* Send decompressed data to a ppm file */
-                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
-                frame_counter++;
-            }            
+                /* Output using the method specified in argv[2] */
+                if (to_stdout)
+                {
+                    /* Send decoded data to stdout */
+                    send_frame_to_stdout(width, height, red_frame_data, green_frame_data, blue_frame_data);
+
+                    /* Separate each frame with the integer -1 */
+                    int frame_separator = -1;
+                    /* Note: printf() outputs to the stdout stream */
+                    printf("%d\n", frame_separator);   
+                }
+                else
+                {
+                    /* Send decoded data to a ppm file */
+                    send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
+                    frame_counter++;
+                }
+            }
         }
     }
 
@@ -132,6 +161,102 @@ void decode_rlefile(char **argv, int num_of_mods)
     free(blue_frame_data);
     
     fclose(rlefile);
+}
+
+void scale_frame_data(unsigned char **scaled_data, unsigned char *red_frame_data, unsigned char *green_frame_data,
+                      unsigned char *blue_frame_data, int scalefactor, int image_pixels, int width, int height)
+{
+    
+    printf("Normal frame data\n");
+
+    int test_width = 3;
+    int test_height = 3;
+
+    int **test = malloc(test_width * sizeof(int *));
+    for (int i = 0; i < test_width; i++)
+    {
+        test[i] = malloc(test_height * sizeof(int));
+    }
+
+    int counter = 0;
+    for (int h = 0; h < test_height; h++)
+    {
+        for (int w = 0; w < test_width; w++)
+        {
+            test[w][h] = counter;
+            counter++;
+            printf("%d ", test[w][h]);
+        }
+        printf("\n");
+    }
+
+    printf("Scaled frame data\n");
+
+    int scaled_width = ((scalefactor * (test_width - 1)) + 1);
+    int scaled_height = ((scalefactor * (test_height - 1)) + 1);
+
+    int **scaled = malloc(scaled_width * sizeof(int *));
+    for (int i = 0; i < scaled_width; i++)
+    {
+        scaled[i] = malloc(scaled_height * sizeof(int));
+    }
+
+    // counter = 0;
+    for (int h = 0; h < scaled_height; h++)
+    {
+        for (int w = 0; w < scaled_width; w++)
+        {
+            scaled[w][h] = 0;
+            printf("%d ", scaled[w][h]);
+        }
+        printf("\n");
+    }
+
+    int test_x = 0;
+    int test_y = 0;
+
+    int scaled_x = (scalefactor * test_x) - 1;
+    int scaled_y = (scalefactor * test_y) - 1;
+
+    // for (int th = 0; th < test_height; th++)
+    // {
+    //     for (int tw = 0; tw < test_width; tw++)
+    //     {
+    //         int scaled_x = ((scalefactor * tw) + 1);
+    //         int scaled_y = ((scalefactor * th) + 1);
+
+    //         scaled[scaled_x][scaled_y] = test[tw][th];
+    //     }
+    // }
+
+    // for (int h = 0; h < scaled_height; h++)
+    // {
+    //     for (int w = 0; w < scaled_width; w++)
+    //     {
+    //         printf("%d ", scaled[w][h]);
+    //     }
+    //     printf("\n");
+    // }
+
+    free(test);
+
+    /* Scale the red channel data */
+
+    
+    /* Iterate over all of the original pixel values */
+    // for (int h = 0; h < height; h++)
+    // {
+    //     for (int w = 0; w < width; w++)
+    //     {
+    //         int red_index = (width * (h - 1)) + w;
+    //         tmp_data[copy_index] = red_frame_data[];
+    //     }
+    // }
+
+    /* Scale the green channel data */
+
+
+    /* Scale the blue channel data */
 }
 
 /************************************************************
@@ -255,12 +380,11 @@ void get_height(FILE *rlefile, char *height_string)
 *           
 * Return : None
 ************************************************************/
-void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data, int image_pixels, int scalefactor)
+void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data, int image_pixels)
 {
     int countChar;
     int currChar;
-    int value_counter = 0; // counter for original pixels
-    // int scale_counter = 0; // counter for scaled pixels
+    int value_counter = 0;
     int min_run_length = 3;
 
     /* Decode exactly the number of values required for a single frame */
@@ -400,6 +524,8 @@ void send_frame_to_ppm(int width, int height,
        will be more than 4 digits */
     char *dimension_string = (char *) malloc(10 * sizeof(char));
 
+    //TODO remember that 'width' and 'height' are the unscaled values
+
     sprintf(dimension_string, "%d %d", width, height);
 
     /* Write file header information to .ppm file */
@@ -445,6 +571,11 @@ void send_frame_to_stdout(int width, int height,
                           unsigned char *green_frame_data,
                           unsigned char *blue_frame_data)
 {
+    /* Stream out the .ppm header information */
+    fprintf(stdout, "P6\n%d %d\n255\n", width, height);
+
+    //TODO remember that 'width' and 'height' are the unscaled values
+
     /* Merge pixel R, G, and B data together as specified by the .ppm format */
     int pixel_index = 0;
     for (int h = 1; h <= height; h++)
