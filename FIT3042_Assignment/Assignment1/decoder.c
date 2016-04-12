@@ -31,11 +31,21 @@ void decode_rlefile(char **argv, int num_of_mods)
         return;
     }
 
-    /* Variables for modifications - initialised to default values */
-    int scale_mod = (num_of_mods > 0 && (strcmp(argv[3], "--scale") == 0));
+    int scale_mod = 0;
     int scale_factor = 1;
-    int tween_mod = (num_of_mods > 0 && (strcmp(argv[3], "--tween") == 0));
+    int tween_mod = 0;
     int tween_factor = 0;
+
+    /* Variables for modifications - initialised to default values */
+    if (num_of_mods > 0 && (strcmp(argv[3], "--scale") == 0))
+    {
+        scale_mod = 1;
+    }
+    else if (num_of_mods > 0 && (strcmp(argv[3], "--tween") == 0))
+    {
+        tween_mod = 1;
+    }
+    
 
     /* Variables for image decompression */
     int *dimensions = NULL;
@@ -75,14 +85,14 @@ void decode_rlefile(char **argv, int num_of_mods)
     if (tween_mod)
     {
         tween_factor = atoi(argv[4]);
-        printf("tween: %d\n", tween_factor);
+        fprintf(stderr, "tween: %d\n", tween_factor);
     }
 
     /* If the scale modifier is specified */
     if (scale_mod)
     {
         scale_factor = atoi(argv[4]);
-        printf("scale: %d\n", scale_factor);
+        fprintf(stderr, "scale: %d\n", scale_factor);
     }
 
     /* Initialise the arrays to store decompressed frame data */
@@ -169,7 +179,6 @@ void decode_rlefile(char **argv, int num_of_mods)
 
                             /* Send tween data to a ppm file */
                             send_frame_to_ppm(width, height, tween_red_frame_data, tween_green_frame_data, tween_blue_frame_data, prefix, frame_counter);
-                            fprintf(stderr, "tween frame");
                             frame_counter++;
 
                             free(tween_red_frame_data);

@@ -33,7 +33,7 @@ int rledecode(int argc, char **argv)
     /* Determine if a modifier ('--scale' and/or '--tween') is passed in */
     int num_of_mods = 0;
 
-    /* If there are 5 arguments, then there is one modifier */
+    /* If there are 5 arguments, then there is a modifier */
     if (argc == 5)
     {
         num_of_mods = 1;
