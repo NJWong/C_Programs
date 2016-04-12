@@ -31,6 +31,11 @@ void decode_rlefile(char **argv, int num_of_mods)
         return;
     }
 
+    int scale_mod = (num_of_mods > 0 && (strcmp(argv[3], "--scale") == 0)); // TODO handle for argv[5] as well
+    /* Variables for modifications - initialised to default values */
+    int scalefactor = 1;
+    // int tweenfactor = 0;
+
     /* Variables for image decompression */
     int *dimensions = NULL;
     int width;
@@ -54,15 +59,20 @@ void decode_rlefile(char **argv, int num_of_mods)
     }
     get_dimensions(rlefile, dimensions);
 
-    if (num_of_mods > 0 && (strcmp(argv[3], "--scale") == 0))
-    {
-    	printf("scale: %d\n", atoi(argv[4]));
-    }
-
     width = dimensions[0];
     height = dimensions[1];
     image_pixels = width * height;
     fprintf(stderr, "width: %d, height: %d, pixels:%d\n", width, height, image_pixels);
+
+    if (scale_mod)
+    {
+        scalefactor = atoi(argv[4]);
+        printf("scale: %d\n", scalefactor);
+
+        /* Scale the total number of pixels that we need to 'malloc' for */
+        image_pixels = (scalefactor * (width - 1) + 1) * (scalefactor * (height - 1) + 1);
+    }
+    fprintf(stderr, "scaled_pixels:%d\n", image_pixels);
 
     /* Initialise the arrays to store decompressed frame data */
     key_frame_data = (unsigned char *) malloc((image_pixels * 3) * sizeof(unsigned char));
@@ -89,7 +99,7 @@ void decode_rlefile(char **argv, int num_of_mods)
         if (c != 'E')
         {
             /* We've found the next key frame */
-            decompress_and_store_key_frame_data(rlefile, key_frame_data, width, height);
+            decompress_and_store_key_frame_data(rlefile, key_frame_data, image_pixels, scalefactor);
 
             /* Copy separate channel values into their own arrays */
             separate_channel_values(key_frame_data, red_frame_data, green_frame_data, blue_frame_data, image_pixels);
@@ -108,7 +118,7 @@ void decode_rlefile(char **argv, int num_of_mods)
             else
             {
                 /* Send decompressed data to a ppm file */
-                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);    
+                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
                 frame_counter++;
             }            
         }
@@ -245,17 +255,18 @@ void get_height(FILE *rlefile, char *height_string)
 *           
 * Return : None
 ************************************************************/
-void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data, int width, int height)
+void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame_data, int image_pixels, int scalefactor)
 {
     int countChar;
     int currChar;
-    int value_counter = 0;
+    int value_counter = 0; // counter for original pixels
+    // int scale_counter = 0; // counter for scaled pixels
     int min_run_length = 3;
 
     /* Decode exactly the number of values required for a single frame */
     /* Note: We know the width and height, and that the R, G, and B values are stored
-       separately, so the number of values required is 'width * height * 3'. */
-    while (value_counter < (width * height * 3))
+       separately, so the number of values required is 'image_pixels * 3'. */
+    while (value_counter < (image_pixels * 3))
     {
         /* Read in the next char */
         countChar = fgetc(rlefile);
