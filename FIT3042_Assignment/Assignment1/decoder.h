@@ -1,4 +1,4 @@
-void decode_rlefile(char **argv);
+void decode_rlefile(char **argv, int num_of_mods);
 void get_dimensions(FILE *rlefile, int *dimensions);
 void bypass_id_string (FILE *rlefile);
 void get_width(FILE *rlefile, char *width_string);

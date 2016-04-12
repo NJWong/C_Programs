@@ -22,7 +22,7 @@
 *          specified output method. If 'scale' or 'tween' is
 *          applied, then the output data will reflect this.
 ************************************************************/
-void decode_rlefile(char **argv)
+void decode_rlefile(char **argv, int num_of_mods)
 {
     FILE *rlefile = fopen(argv[1], "rb");
     if (rlefile == NULL)
