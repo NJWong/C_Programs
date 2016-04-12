@@ -53,6 +53,12 @@ void decode_rlefile(char **argv, int num_of_mods)
         return;
     }
     get_dimensions(rlefile, dimensions);
+
+    if (num_of_mods > 0 && (strcmp(argv[3], "--scale") == 0))
+    {
+    	printf("scale: %d\n", atoi(argv[4]));
+    }
+
     width = dimensions[0];
     height = dimensions[1];
     image_pixels = width * height;
