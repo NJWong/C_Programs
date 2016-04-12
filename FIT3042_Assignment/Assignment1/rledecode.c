@@ -31,18 +31,13 @@ int rledecode(int argc, char **argv)
         return -1;
     }
 
-    /* Determine how many modifiers ('--scale' and/or '--tween') are passed in */
+    /* Determine if a modifier ('--scale' and/or '--tween') is passed in */
     int num_of_mods = 0;
 
     /* If there are 5 arguments, then there is one modifier */
     if (argc == 5)
     {
         num_of_mods = 1;
-    }
-    /* If there are 7 arguments, then there are two modifiers */
-    else if (argc == 7)
-    {
-        num_of_mods = 2;
     }
 
     /* Decode the .rle file and put to output defined in arg2 and with number of modifiers */
