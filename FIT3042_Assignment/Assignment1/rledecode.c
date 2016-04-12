@@ -55,16 +55,26 @@ int validate_args(int argc, char **argv)
         return -1;
     }
 
-    int arg1_is_valid = parse_arg(1, argv[1]);
-    int arg2_is_valid = parse_arg(2, argv[2]);
-    // int arg3_is_valid = parse_arg(3, argv[3]);
-    // int arg4_is_valid = parse_arg(4, argv[4])
+    int arg1_is_valid = parse_arg(1, argv);
+    int arg2_is_valid = parse_arg(2, argv);
+    int arg3_is_valid;
+    int arg4_is_valid;
+
+    if (argc == 5)
+    {
+        arg3_is_valid = parse_arg(3, argv);
+    }
+    
+    if (argc == 7)
+    {
+        arg4_is_valid = parse_arg(4, argv);
+    }
 
     /* Check argv[3] and argv[4] are not both scale or tween */
     // TODO
 
     /* Note: the '!' is there so that we return 0 when all args are valid */
-    return !((arg1_is_valid == 0) && ((arg2_is_valid == 1) || (arg2_is_valid == 2)));
+    return !((arg1_is_valid == 0) && ((arg2_is_valid == 1) || (arg2_is_valid == 2)) && (arg3_is_valid == 0));
 }
 
 /************************************************************
@@ -104,23 +114,23 @@ int check_number_of_args(int argc)
 *           
 * Return : 0 for success, -1 for failure.
 ************************************************************/
-int parse_arg(int arg_index, char *arg)
+int parse_arg(int arg_index, char **argv)
 {
     /* Flag that determines success or failure */
     int flag = -1;
 
     switch(arg_index) {
         case 1:
-            flag = handle_arg1(arg);
+            flag = handle_arg1(argv[1]);
             break;
         case 2:
-            flag = handle_arg2(arg);
+            flag = handle_arg2(argv[2]);
             break;
         case 3:
-            flag = handle_arg3(arg);
+            flag = handle_arg3(argv[3], argv[4]);
             break;
         case 4:
-            flag = handle_arg4(arg);
+            flag = handle_arg4(argv[5], argv[6]);
             break;
         default:
             fprintf(stderr, "Error: parse_argument - incorrect arg_index");
@@ -158,7 +168,7 @@ int handle_arg1(char *filepath)
     {
         fprintf(stderr, "%s does not exist.\n", filepath);
         return -1;
-    }    
+    }
 
     return 0;
 }
@@ -234,13 +244,23 @@ int is_valid_prefix(char *prefix)
 *          optional arguments.
 *
 * Params : arg3 - the third command line argument we get
+*          factor - the tween or scale factor used for linear
+*                   interpolation - is a positive integer
 *           
 * Return : 0 for success, -1 for failure.
 ************************************************************/
-int handle_arg3(char *arg3)
+int handle_arg3(char *arg3, char *factor)
 {
-    fprintf(stderr, "handle_arg3");
-    return 0;
+    /* If arg3 and the  is valid then return 0 */
+    if ((strcmp(arg3, "--scale") == 0) && (atoi(factor) > 0))
+    {
+        return 0;
+    }
+    else
+    {
+        fprintf(stderr, "arg3 and associated factor are not valid.\n");
+        return -1;
+    }
 }
 
 /************************************************************
@@ -250,9 +270,9 @@ int handle_arg3(char *arg3)
 *
 * Params : arg4 - the third command line argument we get
 *           
-* Return : 0 for success, -1 for failure.
+* Return : 0 for success, 1 for failure.
 ************************************************************/
-int handle_arg4(char *arg4)
+int handle_arg4(char *arg4, char *factor)
 {
     fprintf(stderr, "handle_arg4");
     return 0;
