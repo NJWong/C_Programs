@@ -100,9 +100,9 @@ int parse_arg(int arg_index, char **argv)
         case 3:
             flag = handle_arg3(argv[3], argv[4]);
             break;
-        case 4:
-            flag = handle_arg4(argv[5], argv[6]);
-            break;
+        // case 4:
+        //     flag = handle_arg4(argv[5], argv[6]);
+        //     break;
         default:
             fprintf(stderr, "Error: parse_argument - incorrect arg_index");
             break;
@@ -243,8 +243,8 @@ int handle_arg3(char *arg3, char *factor)
 *           
 * Return : 0 for success, 1 for failure.
 ************************************************************/
-int handle_arg4(char *arg4, char *factor)
-{
-    fprintf(stderr, "handle_arg4");
-    return 0;
-}
+// int handle_arg4(char *arg4, char *factor)
+// {
+//     fprintf(stderr, "handle_arg4");
+//     return 0;
+// }
