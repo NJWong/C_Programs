@@ -144,7 +144,7 @@ void decode_rlefile(char **argv, int num_of_mods)
             else
             {
                 /* Send decoded data to a ppm file */
-                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter);
+                send_frame_to_ppm(width, height, red_frame_data, green_frame_data, blue_frame_data, prefix, frame_counter, scale_factor);
                 frame_counter++;
 
                 /******************************
@@ -178,7 +178,7 @@ void decode_rlefile(char **argv, int num_of_mods)
                             }
 
                             /* Send tween data to a ppm file */
-                            send_frame_to_ppm(width, height, tween_red_frame_data, tween_green_frame_data, tween_blue_frame_data, prefix, frame_counter);
+                            send_frame_to_ppm(width, height, tween_red_frame_data, tween_green_frame_data, tween_blue_frame_data, prefix, frame_counter, scale_factor);
                             frame_counter++;
 
                             free(tween_red_frame_data);
@@ -456,7 +456,8 @@ void send_frame_to_ppm(int width, int height,
                        unsigned char *red_frame_data,
                        unsigned char *green_frame_data,
                        unsigned char *blue_frame_data,
-                       char *prefix,  int frame_counter)
+                       char *prefix,  int frame_counter,
+                       int scale_factor)
 {
     /* Assuming a filename will not be more than 50 characters */
     char *filename = (char *) malloc(50 * sizeof(char));
@@ -477,7 +478,12 @@ void send_frame_to_ppm(int width, int height,
        will be more than 4 digits */
     char *dimension_string = (char *) malloc(10 * sizeof(char));
 
-    //TODO remember that 'width' and 'height' are the unscaled values
+    /* Scale according to bilinear interpolation algorithm */
+    if (scale_factor > 1)
+    {
+        width = (scale_factor * (width - 1)) + 1;
+        height = (scale_factor * (height - 1)) + 1;
+    }
 
     sprintf(dimension_string, "%d %d", width, height);
 
@@ -525,7 +531,7 @@ void send_frame_to_stdout(int width, int height,
                           unsigned char *blue_frame_data)
 {
     /* Stream out the .ppm header information */
-    fprintf(stdout, "P6\n%d %d\n255\n", width, height);
+    fprintf(stdout, "P6\n%d %d\n255\n", width*2, height*2);
 
     //TODO remember that 'width' and 'height' are the unscaled values
 

@@ -87,13 +87,28 @@ given 'sonic-test-0001.ppm' file. So I can safely say this functionality works.
 
     2.2 Extended Functionality
     ---------------------------
-    I have partially implemented the tween and scale functionality. The tween
-    functionality is the most complete of the two. However, I am not sure it
-    is what the extrapolation algorithm describes.
+    I have partially implemented the tween and scale functionality. The
+    program accepts either '--scale <factor>' or '--tween <factor>' from the
+    command line arguments. It checks the value to ensure it is valid (i.e.
+    is a positive integer) and then modifies values accordingly.
 
-    To see this, run the following:
+    Note: it does not accept both options at the same time correctly.
 
-    $ ./rledecode /rlefiles/virtua.rle test --tween 2
+    The algorithms to scale and tween are not complete, and invoking them
+    produces results that are not consistent with what is expected. However,
+    they do not result in failure.
+
+    Invoke scale by using:
+
+    $ ./rledecode /rlefiles/single-sonic test --scale 2
+
+    The result is stored in a 'test-0001.ppm' file
+
+    Invoke tween by using:
+
+    $ ./rledecode /rlefiles/virtua.rle test --tween 1
+
+    The result is stored in the series of 'test-XXXX.ppm' files
 
 2. Testing
 -----------
