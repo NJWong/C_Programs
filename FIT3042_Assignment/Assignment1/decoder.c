@@ -138,8 +138,8 @@ void decode_rlefile(char **argv, int num_of_mods)
 
                 /* Separate each frame with the integer -1 */
                 int frame_separator = -1;
-                /* Note: printf() outputs to the stdout stream */
-                printf("%d\n", frame_separator);   
+                /* Outputs to the stdout stream */
+                fprintf(stdout, "%d\n", frame_separator);
             }
             else
             {
@@ -532,8 +532,6 @@ void send_frame_to_stdout(int width, int height,
 {
     /* Stream out the .ppm header information */
     fprintf(stdout, "P6\n%d %d\n255\n", width*2, height*2);
-
-    //TODO remember that 'width' and 'height' are the unscaled values
 
     /* Merge pixel R, G, and B data together as specified by the .ppm format */
     int pixel_index = 0;
