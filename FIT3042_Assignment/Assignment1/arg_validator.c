@@ -36,10 +36,10 @@ int validate_args(int argc, char **argv)
         arg3_is_valid = parse_arg(3, argv);
     }
     
-    if (argc == 7)
-    {
-        arg4_is_valid = parse_arg(4, argv);
-    }
+    // if (argc == 7)
+    // {
+    //     arg4_is_valid = parse_arg(4, argv);
+    // }
 
     /* Check argv[3] and argv[4] are not both scale or tween */
     // TODO
