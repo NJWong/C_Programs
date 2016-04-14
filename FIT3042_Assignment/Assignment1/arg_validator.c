@@ -29,7 +29,7 @@ int validate_args(int argc, char **argv)
     int arg1_is_valid = parse_arg(1, argv);
     int arg2_is_valid = parse_arg(2, argv);
     int arg3_is_valid = 0; // default value
-    int arg4_is_valid = 0; // default value
+    // int arg4_is_valid = 0; // default value
 
     if (argc == 5)
     {
