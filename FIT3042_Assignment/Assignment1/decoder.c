@@ -148,7 +148,7 @@ void decode_rlefile(char **argv, int num_of_mods)
                 frame_counter++;
 
                 /******************************
-                *    HANDLE TWEEN FRAMES
+                *  START INSERT TWEEN FRAMES
                 ******************************/
                 if (tween_mod)
                 {
@@ -190,6 +190,9 @@ void decode_rlefile(char **argv, int num_of_mods)
                     save_current_frame(prev_red_frame_data, prev_green_frame_data, prev_blue_frame_data,
                                        red_frame_data, green_frame_data, blue_frame_data, image_pixels);
                 }
+                /******************************
+                *   END INSERT TWEEN FRAMES
+                ******************************/
             }
         }
     }
@@ -352,6 +355,7 @@ void decompress_and_store_key_frame_data(FILE *rlefile, unsigned char *key_frame
             /* Found a run, write out 2 - countChar copies */
             countChar = (min_run_length - 1) - countChar;
 
+            /* Checking against EOF because it's not a comparable ASCII char */
             if (EOF == (currChar = fgetc(rlefile)))
             {
                 countChar = 0;

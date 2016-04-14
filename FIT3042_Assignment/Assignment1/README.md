@@ -43,7 +43,8 @@ and value, not both at the same time. So the following is not supported:
     $ ./rledecode test.rle prefix --scale 2 --tween 1
 
 This current version of the program supports decoding an *.rle file and
-outputting each frame to a *.ppm file, or to stdout.
+outputting each frame to a *.ppm file, or to stdout. These functions can be
+found in the 'decoder.c' file.
 
 It supports videos with image width and height of up to 5 digits (a safe
 assumption because most screens generally have 4 digit widths and heights e.g.
