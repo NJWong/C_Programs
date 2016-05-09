@@ -1,0 +1,125 @@
+\hypertarget{decompress_8h}{\section{decompress.\-h File Reference}
+\label{decompress_8h}\index{decompress.\-h@{decompress.\-h}}
+}
+
+
+This file contains prototypes for functions that decompress R\-L\-Eplay files.  
+
+
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
+{\ttfamily \#include $<$stdint.\-h$>$}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{struct_r_l_e_file}{R\-L\-E\-File}
+\begin{DoxyCompactList}\small\item\em Represents a R\-L\-Eplay file. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{decompress_8h_a8d23feea868a983c8c2b661e1e16972f}{\#define \hyperlink{decompress_8h_a8d23feea868a983c8c2b661e1e16972f}{R\-E\-D}~0}\label{decompress_8h_a8d23feea868a983c8c2b661e1e16972f}
+
+\begin{DoxyCompactList}\small\item\em byte offset for red channel \end{DoxyCompactList}\item 
+\hypertarget{decompress_8h_acfbc006ea433ad708fdee3e82996e721}{\#define \hyperlink{decompress_8h_acfbc006ea433ad708fdee3e82996e721}{G\-R\-E\-E\-N}~1}\label{decompress_8h_acfbc006ea433ad708fdee3e82996e721}
+
+\begin{DoxyCompactList}\small\item\em byte offset for green channel \end{DoxyCompactList}\item 
+\hypertarget{decompress_8h_a79d10e672abb49ad63eeaa8aaef57c38}{\#define \hyperlink{decompress_8h_a79d10e672abb49ad63eeaa8aaef57c38}{B\-L\-U\-E}~2}\label{decompress_8h_a79d10e672abb49ad63eeaa8aaef57c38}
+
+\begin{DoxyCompactList}\small\item\em byte offset for blue channel \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{decompress_8h_a57d21daca6f06262e95f8f3dfaa28600}{decompress\-\_\-file} (F\-I\-L\-E $\ast$infile, char $\ast$output\-\_\-basename)
+\begin{DoxyCompactList}\small\item\em Decompresses the file passed in as {\ttfamily infile}. \end{DoxyCompactList}\item 
+void \hyperlink{decompress_8h_a41115dd199e8f181c4c70592394fdd02}{set\-\_\-channel\-\_\-value} (uint8\-\_\-t $\ast$buffer, uint8\-\_\-t colour, int, uint8\-\_\-t pixcount)
+\begin{DoxyCompactList}\small\item\em Sets the appropriate byte in. \end{DoxyCompactList}\item 
+void \hyperlink{decompress_8h_ae8e781b8178d43946d2b6ab9a1c1ef84}{decode\-\_\-channel} (\hyperlink{struct_r_l_e_file}{R\-L\-E\-File} $\ast$infile, uint8\-\_\-t colour, uint8\-\_\-t $\ast$)
+\begin{DoxyCompactList}\small\item\em Decodes a single channel into {\ttfamily buffer}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This file contains prototypes for functions that decompress R\-L\-Eplay files. \begin{DoxyAuthor}{Author}
+Robyn A. Mc\-Namara 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+April 2016 
+\end{DoxyDate}
+
+
+\subsection{Function Documentation}
+\hypertarget{decompress_8h_ae8e781b8178d43946d2b6ab9a1c1ef84}{\index{decompress.\-h@{decompress.\-h}!decode\-\_\-channel@{decode\-\_\-channel}}
+\index{decode\-\_\-channel@{decode\-\_\-channel}!decompress.h@{decompress.\-h}}
+\subsubsection[{decode\-\_\-channel}]{\setlength{\rightskip}{0pt plus 5cm}void decode\-\_\-channel (
+\begin{DoxyParamCaption}
+\item[{{\bf R\-L\-E\-File} $\ast$}]{file, }
+\item[{uint8\-\_\-t}]{colour, }
+\item[{uint8\-\_\-t $\ast$}]{buffer}
+\end{DoxyParamCaption}
+)}}\label{decompress_8h_ae8e781b8178d43946d2b6ab9a1c1ef84}
+
+
+Decodes a single channel into {\ttfamily buffer}. 
+
+The buffer should exist before this function is called. To fully create the image, {\ttfamily \hyperlink{decompress_8h_ae8e781b8178d43946d2b6ab9a1c1ef84}{decode\-\_\-channel()}} must be called on the red, green, and blue channels, passing the same buffer in at each call. Once this has been done, {\ttfamily buffer} will contain a stream of 24-\/bit R\-G\-B pixels, suitable for writing to a binary P\-P\-M.
+
+
+\begin{DoxyParams}{Parameters}
+{\em infile} & Reference to the \hyperlink{struct_r_l_e_file}{R\-L\-E\-File} struct containing the input stream \\
+\hline
+{\em colour} & One of {\ttfamily R\-E\-D}, {\ttfamily G\-R\-E\-E\-N}, or {\ttfamily B\-L\-U\-E} \\
+\hline
+{\em buffer} & Buffer in which the channel will be set\\
+\hline
+\end{DoxyParams}
+decompress.\-c\-: functions that decompress R\-L\-Eplay files. -- Robyn A. Mc\-Namara, April 2016 \hypertarget{decompress_8h_a57d21daca6f06262e95f8f3dfaa28600}{\index{decompress.\-h@{decompress.\-h}!decompress\-\_\-file@{decompress\-\_\-file}}
+\index{decompress\-\_\-file@{decompress\-\_\-file}!decompress.h@{decompress.\-h}}
+\subsubsection[{decompress\-\_\-file}]{\setlength{\rightskip}{0pt plus 5cm}void decompress\-\_\-file (
+\begin{DoxyParamCaption}
+\item[{F\-I\-L\-E $\ast$}]{infile, }
+\item[{char $\ast$}]{output\-\_\-basename}
+\end{DoxyParamCaption}
+)}}\label{decompress_8h_a57d21daca6f06262e95f8f3dfaa28600}
+
+
+Decompresses the file passed in as {\ttfamily infile}. 
+
+If {\ttfamily output\-\_\-basename} is non-\/null, it is interpreted as the desired basename for output P\-P\-Ms; otherwise, the decompressed data is sent to {\ttfamily stdout} with the integer -\/1 between frames.
+
+If output is to be stored to P\-P\-Ms, they will be named $<$output\-\_\-basename$>$-\/0001.\-ppm, $<$output\-\_\-basename$>$-\/0002.\-ppm, etc.
+
+
+\begin{DoxyParams}{Parameters}
+{\em infile} & Pointer to the input file, which has been opened but not validated \\
+\hline
+{\em output\-\_\-basename} & Desired basename for output P\-P\-Ms, or N\-U\-L\-L for output to {\ttfamily stdout} \\
+\hline
+\end{DoxyParams}
+\hypertarget{decompress_8h_a41115dd199e8f181c4c70592394fdd02}{\index{decompress.\-h@{decompress.\-h}!set\-\_\-channel\-\_\-value@{set\-\_\-channel\-\_\-value}}
+\index{set\-\_\-channel\-\_\-value@{set\-\_\-channel\-\_\-value}!decompress.h@{decompress.\-h}}
+\subsubsection[{set\-\_\-channel\-\_\-value}]{\setlength{\rightskip}{0pt plus 5cm}void set\-\_\-channel\-\_\-value (
+\begin{DoxyParamCaption}
+\item[{uint8\-\_\-t $\ast$}]{buffer, }
+\item[{uint8\-\_\-t}]{colour, }
+\item[{int}]{, }
+\item[{uint8\-\_\-t}]{pixcount}
+\end{DoxyParamCaption}
+)}}\label{decompress_8h_a41115dd199e8f181c4c70592394fdd02}
+
+
+Sets the appropriate byte in. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em buffer,given} & the {\ttfamily colour} and {\ttfamily pixcount}.\\
+\hline
+\end{DoxyParams}
+Assumes {\ttfamily R\-E\-D}, {\ttfamily G\-R\-E\-E\-N}, and {\ttfamily B\-L\-U\-E} are appropriately defined.
+
+
+\begin{DoxyParams}{Parameters}
+{\em buffer} & Array containing pixel values in 8-\/bit R\-G\-B format \\
+\hline
+{\em colour} & One of {\ttfamily R\-E\-D}, {\ttfamily G\-R\-E\-E\-N}, or {\ttfamily B\-L\-U\-E} \\
+\hline
+{\em pixcount} & Index of the pixel whose channel is to be set \\
+\hline
+\end{DoxyParams}

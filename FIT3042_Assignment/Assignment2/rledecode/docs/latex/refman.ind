@@ -1,0 +1,26 @@
+\begin{theindex}
+
+  \item {decode\discretionary {-}{}{}\_\discretionary {-}{}{}channel}
+    \subitem {decompress.\discretionary {-}{}{}h}, \hyperpage{8}
+  \item {decompress.\discretionary {-}{}{}h}, \hyperpage{7}
+    \subitem {decode\discretionary {-}{}{}\_\discretionary {-}{}{}channel}, 
+		\hyperpage{8}
+    \subitem {decompress\discretionary {-}{}{}\_\discretionary {-}{}{}file}, 
+		\hyperpage{8}
+    \subitem {set\discretionary {-}{}{}\_\discretionary {-}{}{}channel\discretionary {-}{}{}\_\discretionary {-}{}{}value}, 
+		\hyperpage{8}
+  \item {decompress\discretionary {-}{}{}\_\discretionary {-}{}{}file}
+    \subitem {decompress.\discretionary {-}{}{}h}, \hyperpage{8}
+
+  \indexspace
+
+  \item {R\discretionary {-}{}{}L\discretionary {-}{}{}E\discretionary {-}{}{}File}, 
+		\hyperpage{5}
+  \item {rledecode.\discretionary {-}{}{}c}, \hyperpage{9}
+
+  \indexspace
+
+  \item {set\discretionary {-}{}{}\_\discretionary {-}{}{}channel\discretionary {-}{}{}\_\discretionary {-}{}{}value}
+    \subitem {decompress.\discretionary {-}{}{}h}, \hyperpage{8}
+
+\end{theindex}
