@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "ppmplayer.h"
 #include "arg_parser.h"
+#include "video_player.h"
 
 /************************************************************
 * Desc   : Primary function that determines whether the
@@ -29,17 +30,8 @@ int ppmplayer(int argc, char **argv)
         return -1;
     }
 
-    /* Determine if a modifier ('--scale' and/or '--tween') is passed in */
-    // int num_of_mods = 0;
-
-    /* If there are 5 arguments, then there is a modifier */
-    // if (argc == 5)
-    // {
-    //     num_of_mods = 1;
-    // }
-
-    /* Decode the .rle file and put to output defined in arg2 and with number of modifiers */
-    // decode_rlefile(argv, num_of_mods);
+    /* Initiate the video player */
+    play(argv);
 
     return 0;
 }

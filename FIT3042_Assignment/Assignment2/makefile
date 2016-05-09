@@ -4,8 +4,8 @@ MODE   = -std=c99
 
 all: clean_bins ppmplayer
 
-ppmplayer: arg_parser.c ppmplayer.c driver.c
-	$(CC) $(CFLAGS) $(MODE) -o ppmplayer arg_parser.c ppmplayer.c driver.c
+ppmplayer: arg_parser.c video_player.c ppmplayer.c driver.c
+	$(CC) $(CFLAGS) $(MODE) -o ppmplayer arg_parser.c video_player.c ppmplayer.c driver.c
 
 clean: clean_bins clean_output
 
