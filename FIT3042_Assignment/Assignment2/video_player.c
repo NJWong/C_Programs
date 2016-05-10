@@ -13,6 +13,32 @@ int close(SDL_Window *window, SDL_Surface *screenSurface)
     return 0;
 }
 
+int check_valid_ppm(char *line_buffer, int line_buffer_size)
+{
+    /* Zero-initialize line_buffer */
+    memset(line_buffer, 0, line_buffer_size);
+
+    int i = 0;
+    char next_c = '\0';
+
+    while ((next_c = fgetc(stdin)) != '\n')
+    {
+        line_buffer[i] = next_c;
+        i++;
+    }
+
+    line_buffer[i] = '\0';
+
+    /* Fail if magic number is not 'P6' */   
+    if (strcmp(line_buffer, "P6") != 0)
+    {
+        printf("Not a valid PPM file! Magic number line was: %s\n", line_buffer);
+        return -1;
+    }
+
+    return 0;
+}
+
 void set_width(int *dimensions, char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -51,28 +77,13 @@ void set_height(int *dimensions, char *line_buffer, int line_buffer_size)
     dimensions[1] = atoi(line_buffer);
 }
 
-// returns 0 on success, -1 on failure
-int read_ppm_frame_header(int *dimensions)
+int check_valid_max_val(char *line_buffer, int line_buffer_size)
 {
-    char next_c = '\0';
-    char *line_buffer = NULL;
-    int line_buffer_size = 0;
-
-    /* Read and validate the 'magic number' line */
-    line_buffer_size = 3;
-    line_buffer = (char *) malloc(line_buffer_size * sizeof(char));
-
-    // TODO move this to a function
-    if (line_buffer == NULL)
-    {
-        printf("Error: line_buffer is NULL.\n");
-        return -1;
-    }
-
     /* Zero-initialize line_buffer */
     memset(line_buffer, 0, line_buffer_size);
 
     int i = 0;
+    char next_c = '\0';
 
     while ((next_c = fgetc(stdin)) != '\n')
     {
@@ -83,9 +94,33 @@ int read_ppm_frame_header(int *dimensions)
     line_buffer[i] = '\0';
 
     /* Fail if magic number is not 'P6' */   
-    if (strcmp(line_buffer, "P6") != 0)
+    if (strcmp(line_buffer, "255") != 0)
     {
-        printf("Not a valid PPM file! Magic number line was: %s\n", line_buffer);
+        printf("Not a valid max val: %s\n", line_buffer);
+        return -1;
+    }
+
+    return 0;
+}
+
+// returns 0 on success, -1 on failure
+int read_ppm_frame_header(int *dimensions)
+{
+    char *line_buffer = NULL;
+    int line_buffer_size = 0;
+    
+    /* CHECK VALID PPM */
+    line_buffer_size = 3;
+    line_buffer = (char *) malloc(line_buffer_size * sizeof(char));
+
+    if (line_buffer == NULL)
+    {
+        printf("Error: line_buffer is NULL.\n");
+        return -1;
+    }
+
+    if (check_valid_ppm(line_buffer, line_buffer_size) != 0)
+    {
         return -1;
     }
 
@@ -109,9 +144,23 @@ int read_ppm_frame_header(int *dimensions)
 
     free(line_buffer);
 
-    /* If dimensions are NULL, then set them */
-    /* Otherwise, check the values are consistent */
-    /* Fail if values are not consistent */
+
+    /* CHECK MAX VALUE - should be 255 */
+    line_buffer_size = 4;
+    line_buffer = (char *) malloc(line_buffer_size * sizeof(char));
+
+    if (line_buffer == NULL)
+    {
+        printf("Error: line_buffer is NULL.\n");
+        return -1;
+    }
+
+    if (check_valid_max_val(line_buffer, line_buffer_size) != 0)
+    {
+        return -1;
+    }
+
+    free(line_buffer);
 
     return 0;
 }
@@ -123,11 +172,12 @@ int play_video(char **argv)
 
     SDL_Window *window = NULL;
     SDL_Surface *screenSurface = NULL;
+    int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
 
     /* Initialize the dimensions array*/
-    int *dimensions = (int *) malloc(3*sizeof(int));
+    dimensions = (int *) malloc(3*sizeof(int));
     if (dimensions == NULL)
     {
         printf("Error: dimensions array is NULL.\n");
@@ -165,7 +215,7 @@ int play_video(char **argv)
     }
     else
     {
-        window = SDL_CreateWindow("Hello World",
+        window = SDL_CreateWindow("ppmplayer",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             screen_width, screen_height,
             SDL_WINDOW_SHOWN);
@@ -179,6 +229,9 @@ int play_video(char **argv)
             /* Set the window surface to a purple/pink colour - easy to see for debugging */
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
+            Uint8 red_channel = 0;
+            Uint8 green_channel = 0;
+            Uint8 blue_channel = 0;
 
             /*  */
             for (int y = 0; y < screen_height; y++)
@@ -187,11 +240,16 @@ int play_video(char **argv)
                 {
                     int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
 
-                    Uint8 red_channel = 0x00;
-                    Uint8 green_channel = 0x00;
-                    Uint8 blue_channel = 0x00;
+                    // red_channel = get_next_red();
+                    // green_channel = get_next_green();
+                    // blue_channel = get_next_blue();
+                    red_channel = fgetc(stdin);
+                    green_channel = fgetc(stdin);
+                    blue_channel = fgetc(stdin);
+                    // printf("%d, %d, %d\n", fgetc(stdin), fgetc(stdin), fgetc(stdin));
 
-                    *p=SDL_MapRGB(screenSurface->format, red_channel, blue_channel, green_channel);
+                    *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
+                    // *p = SDL_MapRGB(screenSurface->format, fgetc(stdin), fgetc(stdin), fgetc(stdin));
                 }
             }
 
