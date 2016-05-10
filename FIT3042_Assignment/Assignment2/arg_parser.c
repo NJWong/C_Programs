@@ -26,6 +26,8 @@ int validate_args(int argc, char **argv)
         return -1;
     }
 
+    /* Validate the command line arguments */
+
     return 0;
 }
 
