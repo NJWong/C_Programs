@@ -13,6 +13,44 @@ int close(SDL_Window *window, SDL_Surface *screenSurface)
     return 0;
 }
 
+void set_width(int *dimensions, char *line_buffer, int line_buffer_size)
+{
+    /* Zero-initialize line_buffer */
+    memset(line_buffer, 0, line_buffer_size);
+
+    /* Read in the width dimension to line_buffer */
+    char next_c = '\0';
+    int i = 0;
+    while ((next_c = fgetc(stdin)) != ' ')
+    {
+        line_buffer[i] = next_c;
+        i++;
+    }
+
+    line_buffer[i] = '\0';
+
+    dimensions[0] = atoi(line_buffer);
+}
+
+void set_height(int *dimensions, char *line_buffer, int line_buffer_size)
+{
+    /* Zero-initialize line_buffer */
+    memset(line_buffer, 0, line_buffer_size);
+
+    /* Read in the height dimension to line_buffer */
+    char next_c = '\0';
+    int i = 0;
+    while ((next_c = fgetc(stdin)) != '\n')
+    {
+        line_buffer[i] = next_c;
+        i++;
+    }
+
+    line_buffer[i] = '\0';
+
+    dimensions[1] = atoi(line_buffer);
+}
+
 // returns 0 on success, -1 on failure
 int read_ppm_frame_header(int *dimensions)
 {
@@ -57,41 +95,19 @@ int read_ppm_frame_header(int *dimensions)
     line_buffer_size = 5;
     line_buffer = (char *) malloc(line_buffer_size * sizeof(char));
 
-    /* SET WIDTH */
-    /* Zero-initialize line_buffer */
-    memset(line_buffer, 0, line_buffer_size);
-
-    /* Read in the width dimension to line_buffer */
-    i = 0;
-    while ((next_c = fgetc(stdin)) != ' ')
+    if (line_buffer == NULL)
     {
-        line_buffer[i] = next_c;
-        i++;
+        printf("Error: line_buffer is NULL.\n");
+        return -1;
     }
 
-    line_buffer[i] = '\0';
-
-    dimensions[0] = atoi(line_buffer);
+    /* SET WIDTH */
+    set_width(dimensions, line_buffer, line_buffer_size);
 
     /* SET HEIGHT */
-    /* Zero-initialize line_buffer */
-    memset(line_buffer, 0, line_buffer_size);
-
-    /* Read in the height dimension to line_buffer */
-    i = 0;
-    while ((next_c = fgetc(stdin)) != '\n')
-    {
-        line_buffer[i] = next_c;
-        i++;
-    }
-
-    line_buffer[i] = '\0';
-
-    dimensions[1] = atoi(line_buffer);
+    set_height(dimensions, line_buffer, line_buffer_size);
 
     free(line_buffer);
-
-
 
     /* If dimensions are NULL, then set them */
     /* Otherwise, check the values are consistent */
@@ -107,11 +123,16 @@ int play_video(char **argv)
 
     SDL_Window *window = NULL;
     SDL_Surface *screenSurface = NULL;
-    int screen_width = NULL;
-    int screen_height = NULL;
+    int screen_width = 0;
+    int screen_height = 0;
 
     /* Initialize the dimensions array*/
     int *dimensions = (int *) malloc(3*sizeof(int));
+    if (dimensions == NULL)
+    {
+        printf("Error: dimensions array is NULL.\n");
+        return -1;
+    }
     memset(dimensions, 0, 2);
     dimensions[2] = '\0';
 
@@ -125,14 +146,18 @@ int play_video(char **argv)
     screen_width = dimensions[0];
     screen_height = dimensions[1];
 
+    free(dimensions);
+
     printf("%d\n", screen_width);
     printf("%d\n", screen_height);
 
-
-    /* TODO check that screen_width and screen_height are not NULL */
+    if (!screen_width || !screen_height)
+    {
+        printf("Error: screen height or width is 0.\n");
+        return -1;
+    }
 
     /* Create an SDL window using the .ppm dimensions */
-    
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
