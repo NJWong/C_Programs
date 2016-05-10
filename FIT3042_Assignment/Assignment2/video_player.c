@@ -165,13 +165,79 @@ int read_ppm_frame_header(int *dimensions)
     return 0;
 }
 
+int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
+{
+    Uint8 red_channel = 0;
+    Uint8 green_channel = 0;
+    Uint8 blue_channel = 0;
+    /* Display the next frame on the screen surface */
+    for (int y = 0; y < screen_height; y++)
+    {
+        for (int x = 0; x < screen_width; x++)
+        {
+            int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
+
+            // red_channel = get_next_red();
+            // green_channel = get_next_green();
+            // blue_channel = get_next_blue();
+            red_channel = fgetc(stdin);
+            green_channel = fgetc(stdin);
+            blue_channel = fgetc(stdin);
+
+            *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
+        }
+    }
+
+    SDL_UpdateWindowSurface(window);
+    SDL_Delay(1000); // TODO remove this
+    return 0;
+}
+
 // return 0 on success, -1 on failure
-int play_video(char **argv)
+int play_video(int screen_width, int screen_height)
+{
+    /* Create an SDL window using the .ppm dimensions */
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    }
+    else
+    {
+        window = SDL_CreateWindow("ppmplayer",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            screen_width, screen_height,
+            SDL_WINDOW_SHOWN);
+
+        if (window == NULL)
+        {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        }
+        else
+        {
+            /* Set the window surface to a purple/pink colour - easy to see for debugging */
+            screenSurface = SDL_GetWindowSurface(window);
+            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
+
+            display_frame(screenSurface, window, screen_width, screen_height);
+        }
+
+        /* Clean up */
+        // close(window, screenSurface);
+        SDL_FreeSurface(screenSurface);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+    }
+
+    return 0;
+}
+
+int video_player_init(char **argv)
 {
     printf("Playing video at %s delay\n", argv[1]);
 
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
     int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
@@ -198,74 +264,15 @@ int play_video(char **argv)
 
     free(dimensions);
 
-    printf("%d\n", screen_width);
-    printf("%d\n", screen_height);
-
     if (!screen_width || !screen_height)
     {
         printf("Error: screen height or width is 0.\n");
         return -1;
     }
 
-    /* Create an SDL window using the .ppm dimensions */
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if(play_video(screen_width, screen_height) != 0)
     {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return -1;
     }
-    else
-    {
-        window = SDL_CreateWindow("ppmplayer",
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            screen_width, screen_height,
-            SDL_WINDOW_SHOWN);
-
-        if (window == NULL)
-        {
-            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        }
-        else
-        {
-            /* Set the window surface to a purple/pink colour - easy to see for debugging */
-            screenSurface = SDL_GetWindowSurface(window);
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
-            Uint8 red_channel = 0;
-            Uint8 green_channel = 0;
-            Uint8 blue_channel = 0;
-
-            /*  */
-            for (int y = 0; y < screen_height; y++)
-            {
-                for (int x = 0; x < screen_width; x++)
-                {
-                    int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
-
-                    // red_channel = get_next_red();
-                    // green_channel = get_next_green();
-                    // blue_channel = get_next_blue();
-                    red_channel = fgetc(stdin);
-                    green_channel = fgetc(stdin);
-                    blue_channel = fgetc(stdin);
-                    // printf("%d, %d, %d\n", fgetc(stdin), fgetc(stdin), fgetc(stdin));
-
-                    *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
-                    // *p = SDL_MapRGB(screenSurface->format, fgetc(stdin), fgetc(stdin), fgetc(stdin));
-                }
-            }
-
-            /* Blit the ppmSurface to the screenSurface */
-
-            SDL_UpdateWindowSurface(window);
-            SDL_Delay(1000); // TODO remove this
-        }
-
-        /* Clean up */
-        // close(window, screenSurface);
-        SDL_FreeSurface(screenSurface);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-    }
-
     return 0;
 }
-

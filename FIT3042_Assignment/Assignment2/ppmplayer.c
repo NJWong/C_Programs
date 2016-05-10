@@ -31,7 +31,7 @@ int ppmplayer(int argc, char **argv)
     }
 
     /* Initiate the video player */
-    if(play_video(argv) != 0)
+    if(video_player_init(argv) != 0)
     {
         printf("Video could not be played.\n");
     }

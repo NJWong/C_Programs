@@ -1,1 +1,1 @@
-int play_video(char **argv);
+int video_player_init(char **argv);
