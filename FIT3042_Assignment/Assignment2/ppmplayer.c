@@ -31,7 +31,15 @@ int ppmplayer(int argc, char **argv)
     }
 
     /* Initiate the video player */
-    play(argv);
+
+    // char c = '\0';
+    // while ((c = fgetc(stdin)) != EOF) {
+    //     printf("%d ",c);
+    // }
+
+    printf("%c\n", fgetc(stdin));
+
+    // play_video(argv);
 
     return 0;
 }
