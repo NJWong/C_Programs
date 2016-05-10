@@ -193,47 +193,6 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
     return 0;
 }
 
-// return 0 on success, -1 on failure
-int play_video(int screen_width, int screen_height)
-{
-    /* Create an SDL window using the .ppm dimensions */
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-    }
-    else
-    {
-        window = SDL_CreateWindow("ppmplayer",
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            screen_width, screen_height,
-            SDL_WINDOW_SHOWN);
-
-        if (window == NULL)
-        {
-            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        }
-        else
-        {
-            /* Set the window surface to a purple/pink colour - easy to see for debugging */
-            screenSurface = SDL_GetWindowSurface(window);
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
-
-            display_frame(screenSurface, window, screen_width, screen_height);
-        }
-
-        /* Clean up */
-        // close(window, screenSurface);
-        SDL_FreeSurface(screenSurface);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-    }
-
-    return 0;
-}
-
 int video_player_init(char **argv)
 {
     printf("Playing video at %s delay\n", argv[1]);
@@ -270,9 +229,40 @@ int video_player_init(char **argv)
         return -1;
     }
 
-    if(play_video(screen_width, screen_height) != 0)
+    /* Create an SDL window using the .ppm dimensions */
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        return -1;
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
+    else
+    {
+        window = SDL_CreateWindow("ppmplayer",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            screen_width, screen_height,
+            SDL_WINDOW_SHOWN);
+
+        if (window == NULL)
+        {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        }
+        else
+        {
+            /* Set the window surface to a purple/pink colour - easy to see for debugging */
+            screenSurface = SDL_GetWindowSurface(window);
+            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
+
+            display_frame(screenSurface, window, screen_width, screen_height);
+        }
+
+        /* Clean up */
+        // close(window, screenSurface);
+        SDL_FreeSurface(screenSurface);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+    }
+    
     return 0;
 }
