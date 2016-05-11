@@ -186,33 +186,16 @@ int _display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wi
     }
 
     SDL_UpdateWindowSurface(window);
-    SDL_Delay(1000); // TODO remove this
+    SDL_Delay(2000); // TODO remove this
     return 0;
 }
 
-int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
+int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height, int delay_ms)
 {
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
     Uint8 blue_channel = 0;
     int counter = 0;
-
-    // int screen_pixels = screen_width * screen_height;
-
-    // for (int i = 0; i < screen_pixels; i++)
-    // {
-    //     /* Red channel */
-    //     fgetc(stdin);
-        
-    //      Green channel 
-    //     fgetc(stdin);
-
-    //     /* Blue channel */
-    //     fgetc(stdin);
-    //     counter++;
-    // }
-
-    
 
     /* Display the next frame on the screen surface */
     for (int y = 0; y < screen_height; y++)
@@ -232,13 +215,8 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
 
     printf("counter: %d\n", counter);
 
-    printf("%d\n", fgetc(stdin));
-    printf("%d\n", fgetc(stdin));
-    printf("%d\n", fgetc(stdin));
-    printf("%d\n", fgetc(stdin));
-
     SDL_UpdateWindowSurface(window);
-    SDL_Delay(10); // TODO remove this
+    SDL_Delay(delay_ms); // TODO remove this
     return 0;
 }
 
@@ -255,6 +233,7 @@ int video_player_init(char **argv)
     int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
+    int delay_ms = atoi(argv[1]);
 
     /* Initialize the dimensions array*/
     dimensions = (int *) malloc(3*sizeof(int));
@@ -318,17 +297,36 @@ int video_player_init(char **argv)
             }
 
             first_frame = 0;
-            display_frame(screenSurface, window, screen_width, screen_height);
+            display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
+            fgetc(stdin);
+            fgetc(stdin);
+            fgetc(stdin);
+            fgetc(stdin);
 
-            printf("\nSECOND FRAME\n");
+            for (int i = 0; i < 59; i++)
+            {
+                printf("\nFRAME\n");
+                read_ppm_header(dimensions);
+                display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
 
-            read_ppm_header(dimensions);
-            display_frame(screenSurface, window, screen_width, screen_height);
+                fgetc(stdin);
+                fgetc(stdin);
+                fgetc(stdin);
+                fgetc(stdin);
 
-            printf("\nTHIRD FRAME\n");
+                /* Peek next character */
+                int peek = fgetc(stdin);
 
-            read_ppm_header(dimensions);
-            display_frame(screenSurface, window, screen_width, screen_height);
+                /* 80 = 'P' which is the start of a new frame */
+                if (peek == 80)
+                {
+                    ungetc(peek, stdin);
+                }
+                else
+                {
+                    printf("We are at the end!\n");
+                }
+            }
         }
 
         /* Clean up */
