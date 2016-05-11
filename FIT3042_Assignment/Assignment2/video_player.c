@@ -39,44 +39,6 @@ int check_valid_ppm(char *line_buffer, int line_buffer_size)
     return 0;
 }
 
-void set_width(int *dimensions, char *line_buffer, int line_buffer_size)
-{
-    /* Zero-initialize line_buffer */
-    memset(line_buffer, 0, line_buffer_size);
-
-    /* Read in the width dimension to line_buffer */
-    char next_c = '\0';
-    int i = 0;
-    while ((next_c = fgetc(stdin)) != ' ')
-    {
-        line_buffer[i] = next_c;
-        i++;
-    }
-
-    line_buffer[i] = '\0';
-
-    dimensions[0] = atoi(line_buffer);
-}
-
-void set_height(int *dimensions, char *line_buffer, int line_buffer_size)
-{
-    /* Zero-initialize line_buffer */
-    memset(line_buffer, 0, line_buffer_size);
-
-    /* Read in the height dimension to line_buffer */
-    char next_c = '\0';
-    int i = 0;
-    while ((next_c = fgetc(stdin)) != '\n')
-    {
-        line_buffer[i] = next_c;
-        i++;
-    }
-
-    line_buffer[i] = '\0';
-
-    dimensions[1] = atoi(line_buffer);
-}
-
 int check_valid_max_val(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -103,8 +65,60 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     return 0;
 }
 
+int check_width(int screen_width, char *line_buffer, int line_buffer_size)
+{
+    /* Zero-initialize line_buffer */
+    memset(line_buffer, 0, line_buffer_size);
+
+    /* Read in the width dimension to line_buffer */
+    char next_c = '\0';
+    int i = 0;
+    while ((next_c = fgetc(stdin)) != ' ')
+    {
+        line_buffer[i] = next_c;
+        i++;
+    }
+
+    line_buffer[i] = '\0';
+
+    if (atoi(line_buffer) == screen_width)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int check_height(int screen_height, char *line_buffer, int line_buffer_size)
+{
+    /* Zero-initialize line_buffer */
+    memset(line_buffer, 0, line_buffer_size);
+
+    /* Read in the height dimension to line_buffer */
+    char next_c = '\0';
+    int i = 0;
+    while ((next_c = fgetc(stdin)) != '\n')
+    {
+        line_buffer[i] = next_c;
+        i++;
+    }
+
+    line_buffer[i] = '\0';
+
+    if (atoi(line_buffer) == screen_height)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 // returns 0 on success, -1 on failure
-int read_ppm_header(int *dimensions)
+int read_ppm_header(int screen_width, int screen_height)
 {
     char *line_buffer = NULL;
     int line_buffer_size = 0;
@@ -136,14 +150,19 @@ int read_ppm_header(int *dimensions)
         return -1;
     }
 
-    /* SET WIDTH */
-    set_width(dimensions, line_buffer, line_buffer_size);
+    /* Check width */
+    if (check_width(screen_width, line_buffer, line_buffer_size) != 0)
+    {
+        return -1;
+    }
 
-    /* SET HEIGHT */
-    set_height(dimensions, line_buffer, line_buffer_size);
+    /* Check height */
+    if (check_height(screen_height, line_buffer, line_buffer_size) != 0)
+    {
+        return -1;
+    }
 
     free(line_buffer);
-
 
     /* CHECK MAX VALUE - should be 255 */
     line_buffer_size = 4;
@@ -238,20 +257,20 @@ int video_player_init(char **argv)
     SDL_Surface *screenSurface = NULL;
 
     /* Handle first ppm header */
-    int *dimensions = NULL;
+    // int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
     int delay_ms = atoi(argv[1]);
 
     /* Initialize the dimensions array*/
-    dimensions = (int *) malloc(3*sizeof(int));
-    if (dimensions == NULL)
-    {
-        printf("Error: dimensions array is NULL.\n");
-        return -1;
-    }
-    memset(dimensions, 0, 2);
-    dimensions[2] = '\0';
+    // dimensions = (int *) malloc(3*sizeof(int));
+    // if (dimensions == NULL)
+    // {
+    //     printf("Error: dimensions array is NULL.\n");
+    //     return -1;
+    // }
+    // memset(dimensions, 0, 2);
+    // dimensions[2] = '\0';
 
     /* Peek the dimensions from the first frame header */
     int peek_char = '\0';
@@ -340,7 +359,8 @@ int video_player_init(char **argv)
             for (int i = 0; i < 58; i++)
             {
                 printf("\nFRAME\n");
-                read_ppm_header(dimensions);
+                // read_ppm_header(dimensions);
+                read_ppm_header(screen_width, screen_height);
                 display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
 
                 remove_frame_separator();
@@ -366,7 +386,8 @@ int video_player_init(char **argv)
         SDL_Quit();
     }
 
-    free(dimensions);
+    // free(dimensions);
 
     return 0;
 }
+
