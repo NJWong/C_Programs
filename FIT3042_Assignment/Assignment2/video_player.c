@@ -104,7 +104,7 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
 }
 
 // returns 0 on success, -1 on failure
-int read_ppm_frame_header(int *dimensions)
+int read_ppm_header(int *dimensions)
 {
     char *line_buffer = NULL;
     int line_buffer_size = 0;
@@ -165,7 +165,7 @@ int read_ppm_frame_header(int *dimensions)
     return 0;
 }
 
-int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
+int _display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
 {
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
@@ -177,9 +177,6 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
         {
             int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
 
-            // red_channel = get_next_red();
-            // green_channel = get_next_green();
-            // blue_channel = get_next_blue();
             red_channel = fgetc(stdin);
             green_channel = fgetc(stdin);
             blue_channel = fgetc(stdin);
@@ -193,10 +190,68 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
     return 0;
 }
 
+int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
+{
+    Uint8 red_channel = 0;
+    Uint8 green_channel = 0;
+    Uint8 blue_channel = 0;
+    int counter = 0;
+
+    // int screen_pixels = screen_width * screen_height;
+
+    // for (int i = 0; i < screen_pixels; i++)
+    // {
+    //     /* Red channel */
+    //     fgetc(stdin);
+        
+    //      Green channel 
+    //     fgetc(stdin);
+
+    //     /* Blue channel */
+    //     fgetc(stdin);
+    //     counter++;
+    // }
+
+    
+
+    /* Display the next frame on the screen surface */
+    for (int y = 0; y < screen_height; y++)
+    {
+        for (int x = 0; x < screen_width; x++)
+        {
+            int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
+
+            red_channel = fgetc(stdin);
+            green_channel = fgetc(stdin);
+            blue_channel = fgetc(stdin);
+
+            *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
+            counter++;
+        }
+    }
+
+    printf("counter: %d\n", counter);
+
+    printf("%d\n", fgetc(stdin));
+    printf("%d\n", fgetc(stdin));
+    printf("%d\n", fgetc(stdin));
+    printf("%d\n", fgetc(stdin));
+
+    SDL_UpdateWindowSurface(window);
+    SDL_Delay(10); // TODO remove this
+    return 0;
+}
+
 int video_player_init(char **argv)
 {
     printf("Playing video at %s delay\n", argv[1]);
 
+    /* Create SDL Window */
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
+
+    /* Handle first ppm header */
+    int first_frame = 1;
     int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
@@ -211,8 +266,8 @@ int video_player_init(char **argv)
     memset(dimensions, 0, 2);
     dimensions[2] = '\0';
 
-    /* Read in the ppm frame header */
-    if (read_ppm_frame_header(dimensions) != 0)
+    /* Read in the ppm header for the first frame */
+    if (read_ppm_header(dimensions) != 0)
     {
         return -1;
     }
@@ -220,18 +275,13 @@ int video_player_init(char **argv)
     /* Get screen dimensions from the current .ppm image */
     screen_width = dimensions[0];
     screen_height = dimensions[1];
+    printf("width: %d, height %d\n", screen_width, screen_height);
 
-    free(dimensions);
-
-    if (!screen_width || !screen_height)
+    /* Check the dimensions are positive integers */
+    if (screen_width <= 0 || screen_height <= 0)
     {
-        printf("Error: screen height or width is 0.\n");
         return -1;
     }
-
-    /* Create an SDL window using the .ppm dimensions */
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -239,6 +289,7 @@ int video_player_init(char **argv)
     }
     else
     {
+        /* Create the video player window using the dimensions */
         window = SDL_CreateWindow("ppmplayer",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             screen_width, screen_height,
@@ -250,19 +301,43 @@ int video_player_init(char **argv)
         }
         else
         {
-            /* Set the window surface to a purple/pink colour - easy to see for debugging */
+            /* Create the screen - default colour is purple */
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
 
+            if (!first_frame)
+            {
+                /* Read in the ppm header for this frame */
+                if (read_ppm_header(dimensions) != 0)
+                {
+                    return -1;
+                }
+
+                /* TODO Check the dimensions are the same */
+                //...
+            }
+
+            first_frame = 0;
+            display_frame(screenSurface, window, screen_width, screen_height);
+
+            printf("\nSECOND FRAME\n");
+
+            read_ppm_header(dimensions);
+            display_frame(screenSurface, window, screen_width, screen_height);
+
+            printf("\nTHIRD FRAME\n");
+
+            read_ppm_header(dimensions);
             display_frame(screenSurface, window, screen_width, screen_height);
         }
 
         /* Clean up */
-        // close(window, screenSurface);
         SDL_FreeSurface(screenSurface);
         SDL_DestroyWindow(window);
         SDL_Quit();
     }
-    
+
+    free(dimensions);
+
     return 0;
 }
