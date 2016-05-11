@@ -274,6 +274,21 @@ void peek_screen_dimensions()
     free(peek_buffer_3);
 }
 
+int peek_next_char()
+{
+    /* Peek next character */
+    int peek = 0;
+
+    /* 80 == 'P' which is the start of a new frame */
+    if ((peek = fgetc(stdin)) != 80)
+    {    
+        return -1;
+    }
+
+    ungetc(peek, stdin);
+    return 0;
+}
+
 void frame_update_loop()
 {
     read_ppm_header();
@@ -282,44 +297,11 @@ void frame_update_loop()
     remove_frame_separator();
 }
 
-void timer_action(void *arg)
-{
-    printf("test");
-}
-
-Uint32 timer_callback(Uint32 interval, void *parameters)
-{
-    SDL_Event event;
-    SDL_UserEvent user;
-    user.type = SDL_USEREVENT;
-    user.code = 0;
-
-    user.data1 = &timer_action;
-    user.data2 = NULL;
-    event.type = SDL_USEREVENT;
-
-    event.user = user;
-    SDL_PushEvent(&event);
-
-    return interval;
-}
-
 int video_player_init(char **argv)
 {
     printf("Playing video %sms delay.\n", argv[1]);
 
-    // SDL_Event event;
-    // void (*fptr)(void *);
-
-    /* Create SDL Window */
-    // SDL_Window *window = NULL;
-    // SDL_Surface *screenSurface = NULL;
-
-    /* Handle first ppm header */
-    // int screen_width = 0;
-    // int screen_height = 0;
-
-    // int delay_ms = atoi(argv[1]);
+    int delay_ms = atoi(argv[1]);
 
     /* Peek the dimensions from the first frame header */
     peek_screen_dimensions();
@@ -330,7 +312,7 @@ int video_player_init(char **argv)
         return -1;
     }
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
@@ -351,36 +333,14 @@ int video_player_init(char **argv)
             /* Create the screen. Default screen colour is purple. */
             SCREEN_SURFACE = SDL_GetWindowSurface(WINDOW);
             SDL_FillRect(SCREEN_SURFACE, NULL, SDL_MapRGB(SCREEN_SURFACE->format, 0xff, 0x00, 0xff));
-
-
-            // SDL_AddTimer(1000, timer_callback, NULL);
-            // while (SDL_WaitEvent (&event)) {
-            //     switch(event.type) {
-            //         case SDL_USEREVENT:
-            //             fptr = event.user.data1;
-            //             void *arg = event.user.data2;
-            //             fptr(arg);
-            //         default:
-            //             break;
-            //     }
-            // }
-
-            /* Peek next character */
-            int peek = 0;
-
-            /* 80 = 'P' which is the start of a new frame */
-            while ((peek = fgetc(stdin)) == 80)
+        
+            while (peek_next_char() == 0)
             {
-                /* Unpeek that character */
-                ungetc(peek, stdin);
-
-                /* Schedule video frame update loop */
                 frame_update_loop();
-
-                // SDL_Delay(delay_ms); // TODO remove this
+                SDL_Delay(delay_ms);
             }
-            
-            printf("We are at the end!\n");
+
+            printf("--- End of file ---\n");
         }
 
         /* Clean up */
