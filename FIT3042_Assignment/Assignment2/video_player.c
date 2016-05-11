@@ -3,15 +3,11 @@
 #include <SDL.h>
 #include "video_player.h"
 
-int init(SDL_Window *window, SDL_Surface *screenSurface)
-{
-    return 0;
-}
-
-int close(SDL_Window *window, SDL_Surface *screenSurface)
-{
-    return 0;
-}
+/* GLOBALS */
+SDL_Window *WINDOW = NULL;
+SDL_Surface *SCREEN_SURFACE = NULL;
+int SCREEN_WIDTH = 0;
+int SCREEN_HEIGHT = 0;
 
 int check_valid_ppm(char *line_buffer, int line_buffer_size)
 {
@@ -65,7 +61,7 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     return 0;
 }
 
-int check_width(int screen_width, char *line_buffer, int line_buffer_size)
+int check_width(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
     memset(line_buffer, 0, line_buffer_size);
@@ -81,7 +77,7 @@ int check_width(int screen_width, char *line_buffer, int line_buffer_size)
 
     line_buffer[i] = '\0';
 
-    if (atoi(line_buffer) == screen_width)
+    if (atoi(line_buffer) == SCREEN_WIDTH)
     {
         return 0;
     }
@@ -91,7 +87,7 @@ int check_width(int screen_width, char *line_buffer, int line_buffer_size)
     }
 }
 
-int check_height(int screen_height, char *line_buffer, int line_buffer_size)
+int check_height(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
     memset(line_buffer, 0, line_buffer_size);
@@ -107,7 +103,7 @@ int check_height(int screen_height, char *line_buffer, int line_buffer_size)
 
     line_buffer[i] = '\0';
 
-    if (atoi(line_buffer) == screen_height)
+    if (atoi(line_buffer) == SCREEN_HEIGHT)
     {
         return 0;
     }
@@ -118,7 +114,7 @@ int check_height(int screen_height, char *line_buffer, int line_buffer_size)
 }
 
 // returns 0 on success, -1 on failure
-int read_ppm_header(int screen_width, int screen_height)
+int read_ppm_header()
 {
     char *line_buffer = NULL;
     int line_buffer_size = 0;
@@ -151,13 +147,13 @@ int read_ppm_header(int screen_width, int screen_height)
     }
 
     /* Check width */
-    if (check_width(screen_width, line_buffer, line_buffer_size) != 0)
+    if (check_width(line_buffer, line_buffer_size) != 0)
     {
         return -1;
     }
 
     /* Check height */
-    if (check_height(screen_height, line_buffer, line_buffer_size) != 0)
+    if (check_height(line_buffer, line_buffer_size) != 0)
     {
         return -1;
     }
@@ -184,7 +180,7 @@ int read_ppm_header(int screen_width, int screen_height)
     return 0;
 }
 
-int display_frame(SDL_Surface *screenSurface, int screen_width, int screen_height)
+int display_frame()
 {
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
@@ -192,17 +188,17 @@ int display_frame(SDL_Surface *screenSurface, int screen_width, int screen_heigh
     // int counter = 0;
 
     /* Display the next frame on the screen surface */
-    for (int y = 0; y < screen_height; y++)
+    for (int y = 0; y < SCREEN_HEIGHT; y++)
     {
-        for (int x = 0; x < screen_width; x++)
+        for (int x = 0; x < SCREEN_WIDTH; x++)
         {
-            int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
+            int *p = SCREEN_SURFACE->pixels + y * SCREEN_SURFACE->pitch + x * SCREEN_SURFACE->format->BytesPerPixel;
 
             red_channel = fgetc(stdin);
             green_channel = fgetc(stdin);
             blue_channel = fgetc(stdin);
 
-            *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
+            *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
             // counter++;
         }
     }
@@ -220,7 +216,7 @@ void remove_frame_separator()
     }
 }
 
-void peek_screen_dimensions(int *screen_width, int *screen_height)
+void peek_screen_dimensions()
 {
     int peek_char = '\0';
     char *peek_buffer_1 = (char *) malloc(3*sizeof(char));
@@ -250,9 +246,9 @@ void peek_screen_dimensions(int *screen_width, int *screen_height)
     }
 
     /* Get screen dimensions from the current .ppm image */
-    *screen_width = atoi(peek_buffer_2);
-    *screen_height = atoi(peek_buffer_3);
-    printf("width: %d, height %d\n", *screen_width, *screen_height);
+    SCREEN_WIDTH = atoi(peek_buffer_2);
+    SCREEN_HEIGHT = atoi(peek_buffer_3);
+    printf("width: %d, height %d\n", SCREEN_WIDTH, SCREEN_HEIGHT);
 
     /* Unpeek the first frame header */
     ungetc('\n', stdin);
@@ -278,11 +274,11 @@ void peek_screen_dimensions(int *screen_width, int *screen_height)
     free(peek_buffer_3);
 }
 
-void frame_update_loop(SDL_Window *window, SDL_Surface *screenSurface, int screen_width, int screen_height)
+void frame_update_loop()
 {
-    read_ppm_header(screen_width, screen_height);
-    display_frame(screenSurface, screen_width, screen_height);
-    SDL_UpdateWindowSurface(window);
+    read_ppm_header();
+    display_frame();
+    SDL_UpdateWindowSurface(WINDOW);
     remove_frame_separator();
 }
 
@@ -316,19 +312,20 @@ int video_player_init(char **argv)
     // void (*fptr)(void *);
 
     /* Create SDL Window */
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
+    // SDL_Window *window = NULL;
+    // SDL_Surface *screenSurface = NULL;
 
     /* Handle first ppm header */
-    int screen_width = 0;
-    int screen_height = 0;
+    // int screen_width = 0;
+    // int screen_height = 0;
+
     // int delay_ms = atoi(argv[1]);
 
     /* Peek the dimensions from the first frame header */
-    peek_screen_dimensions(&screen_width, &screen_height);
+    peek_screen_dimensions();
 
     /* Check the dimensions are positive integers */
-    if (screen_width <= 0 || screen_height <= 0)
+    if (SCREEN_WIDTH <= 0 || SCREEN_HEIGHT <= 0)
     {
         return -1;
     }
@@ -340,20 +337,20 @@ int video_player_init(char **argv)
     else
     {
         /* Create the video player window using the dimensions */
-        window = SDL_CreateWindow("ppmplayer",
+        WINDOW = SDL_CreateWindow("ppmplayer",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            screen_width, screen_height,
+            SCREEN_WIDTH, SCREEN_HEIGHT,
             SDL_WINDOW_SHOWN);
 
-        if (window == NULL)
+        if (WINDOW == NULL)
         {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         }
         else
         {
             /* Create the screen. Default screen colour is purple. */
-            screenSurface = SDL_GetWindowSurface(window);
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
+            SCREEN_SURFACE = SDL_GetWindowSurface(WINDOW);
+            SDL_FillRect(SCREEN_SURFACE, NULL, SDL_MapRGB(SCREEN_SURFACE->format, 0xff, 0x00, 0xff));
 
 
             // SDL_AddTimer(1000, timer_callback, NULL);
@@ -378,7 +375,7 @@ int video_player_init(char **argv)
                 ungetc(peek, stdin);
 
                 /* Schedule video frame update loop */
-                frame_update_loop(window, screenSurface, screen_width, screen_height);
+                frame_update_loop();
 
                 // SDL_Delay(delay_ms); // TODO remove this
             }
@@ -387,8 +384,8 @@ int video_player_init(char **argv)
         }
 
         /* Clean up */
-        SDL_FreeSurface(screenSurface);
-        SDL_DestroyWindow(window);
+        SDL_FreeSurface(SCREEN_SURFACE);
+        SDL_DestroyWindow(WINDOW);
         SDL_Quit();
     }
 
