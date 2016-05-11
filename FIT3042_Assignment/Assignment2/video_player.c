@@ -184,31 +184,6 @@ int read_ppm_header(int screen_width, int screen_height)
     return 0;
 }
 
-int _display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height)
-{
-    Uint8 red_channel = 0;
-    Uint8 green_channel = 0;
-    Uint8 blue_channel = 0;
-    /* Display the next frame on the screen surface */
-    for (int y = 0; y < screen_height; y++)
-    {
-        for (int x = 0; x < screen_width; x++)
-        {
-            int *p = screenSurface->pixels + y * screenSurface->pitch + x * screenSurface->format->BytesPerPixel;
-
-            red_channel = fgetc(stdin);
-            green_channel = fgetc(stdin);
-            blue_channel = fgetc(stdin);
-
-            *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
-        }
-    }
-
-    SDL_UpdateWindowSurface(window);
-    SDL_Delay(2000); // TODO remove this
-    return 0;
-}
-
 int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height, int delay_ms)
 {
     Uint8 red_channel = 0;
@@ -235,7 +210,6 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
     // printf("counter: %d\n", counter);
 
     SDL_UpdateWindowSurface(window);
-    SDL_Delay(delay_ms); // TODO remove this
     return 0;
 }
 
@@ -248,31 +222,8 @@ void remove_frame_separator()
     }
 }
 
-int video_player_init(char **argv)
+void peek_screen_dimensions(int *screen_width, int *screen_height)
 {
-    printf("Playing video at %s delay\n", argv[1]);
-
-    /* Create SDL Window */
-    SDL_Window *window = NULL;
-    SDL_Surface *screenSurface = NULL;
-
-    /* Handle first ppm header */
-    // int *dimensions = NULL;
-    int screen_width = 0;
-    int screen_height = 0;
-    int delay_ms = atoi(argv[1]);
-
-    /* Initialize the dimensions array*/
-    // dimensions = (int *) malloc(3*sizeof(int));
-    // if (dimensions == NULL)
-    // {
-    //     printf("Error: dimensions array is NULL.\n");
-    //     return -1;
-    // }
-    // memset(dimensions, 0, 2);
-    // dimensions[2] = '\0';
-
-    /* Peek the dimensions from the first frame header */
     int peek_char = '\0';
     char *peek_buffer_1 = (char *) malloc(3*sizeof(char));
     char *peek_buffer_2 = (char *) malloc(5*sizeof(char));
@@ -301,9 +252,9 @@ int video_player_init(char **argv)
     }
 
     /* Get screen dimensions from the current .ppm image */
-    screen_width = atoi(peek_buffer_2);
-    screen_height = atoi(peek_buffer_3);
-    printf("width: %d, height %d\n", screen_width, screen_height);
+    *screen_width = atoi(peek_buffer_2);
+    *screen_height = atoi(peek_buffer_3);
+    printf("width: %d, height %d\n", *screen_width, *screen_height);
 
     /* Unpeek the first frame header */
     ungetc('\n', stdin);
@@ -327,6 +278,23 @@ int video_player_init(char **argv)
     free(peek_buffer_1);
     free(peek_buffer_2);
     free(peek_buffer_3);
+}
+
+int video_player_init(char **argv)
+{
+    printf("Playing video %sms delay.\n", argv[1]);
+
+    /* Create SDL Window */
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
+
+    /* Handle first ppm header */
+    int screen_width = 0;
+    int screen_height = 0;
+    int delay_ms = atoi(argv[1]);
+
+    /* Peek the dimensions from the first frame header */
+    peek_screen_dimensions(&screen_width, &screen_height);
 
     /* Check the dimensions are positive integers */
     if (screen_width <= 0 || screen_height <= 0)
@@ -352,18 +320,20 @@ int video_player_init(char **argv)
         }
         else
         {
-            /* Create the screen - default colour is purple */
+            /* Create the screen. Default colour is purple */
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
 
+
+
+
             for (int i = 0; i < 58; i++)
             {
-                printf("\nFRAME\n");
-                // read_ppm_header(dimensions);
                 read_ppm_header(screen_width, screen_height);
                 display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
-
                 remove_frame_separator();
+
+                SDL_Delay(delay_ms); // TODO remove this
 
                 /* Peek next character */
                 int peek = fgetc(stdin);
@@ -385,8 +355,6 @@ int video_player_init(char **argv)
         SDL_DestroyWindow(window);
         SDL_Quit();
     }
-
-    // free(dimensions);
 
     return 0;
 }
