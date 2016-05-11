@@ -289,12 +289,28 @@ int peek_next_char()
     return 0;
 }
 
-void frame_update_loop()
+void frame_update_loop(void *arg)
 {
     read_ppm_header();
     display_frame();
     SDL_UpdateWindowSurface(WINDOW);
     remove_frame_separator();
+}
+
+Uint32 timer_callback(Uint32 interval, void *param)
+{
+    SDL_Event event;
+    SDL_UserEvent user;
+    user.type = SDL_USEREVENT;
+    user.code = 0;
+
+    user.data1 = &frame_update_loop;
+    user.data2 = NULL;
+
+    event.user = user;
+    SDL_PushEvent(&event);
+
+    return interval;
 }
 
 int video_player_init(char **argv)
@@ -333,11 +349,21 @@ int video_player_init(char **argv)
             /* Create the screen. Default screen colour is purple. */
             SCREEN_SURFACE = SDL_GetWindowSurface(WINDOW);
             SDL_FillRect(SCREEN_SURFACE, NULL, SDL_MapRGB(SCREEN_SURFACE->format, 0xff, 0x00, 0xff));
-        
-            while (peek_next_char() == 0)
-            {
-                frame_update_loop();
-                SDL_Delay(delay_ms);
+
+            SDL_Event event;
+            void (*fptr)(void *);
+
+            SDL_AddTimer(delay_ms, timer_callback, NULL);
+
+            while (peek_next_char() == 0 && feof(stdin) == 0 && SDL_WaitEvent(&event)) {
+                switch(event.type) {
+                    case SDL_USEREVENT:
+                        fptr = event.user.data1;
+                        void *arg = event.user.data2;
+                        fptr(arg);
+                    default:
+                        break;
+                }
             }
 
             printf("--- End of file ---\n");
