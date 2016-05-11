@@ -184,7 +184,7 @@ int read_ppm_header(int screen_width, int screen_height)
     return 0;
 }
 
-int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_width, int screen_height, int delay_ms)
+int display_frame(SDL_Window *window, SDL_Surface *screenSurface, int screen_width, int screen_height)
 {
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
@@ -280,6 +280,13 @@ void peek_screen_dimensions(int *screen_width, int *screen_height)
     free(peek_buffer_3);
 }
 
+void frame_update_loop(SDL_Window *window, SDL_Surface *screenSurface, int screen_width, int screen_height)
+{
+    read_ppm_header(screen_width, screen_height);
+    display_frame(window, screenSurface, screen_width, screen_height);
+    remove_frame_separator();
+}
+
 int video_player_init(char **argv)
 {
     printf("Playing video %sms delay.\n", argv[1]);
@@ -320,34 +327,26 @@ int video_player_init(char **argv)
         }
         else
         {
-            /* Create the screen. Default colour is purple */
+            /* Create the screen. Default screen colour is purple. */
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
 
+            /* Peek next character */
+            int peek = 0;
 
-
-
-            for (int i = 0; i < 58; i++)
+            /* 80 = 'P' which is the start of a new frame */
+            while ((peek = fgetc(stdin)) == 80)
             {
-                read_ppm_header(screen_width, screen_height);
-                display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
-                remove_frame_separator();
+                /* Unpeek that character */
+                ungetc(peek, stdin);
+
+                /* Schedule video frame update loop */
+                frame_update_loop(window, screenSurface, screen_width, screen_height);
 
                 SDL_Delay(delay_ms); // TODO remove this
-
-                /* Peek next character */
-                int peek = fgetc(stdin);
-
-                /* 80 = 'P' which is the start of a new frame */
-                if (peek == 80)
-                {
-                    ungetc(peek, stdin);
-                }
-                else
-                {
-                    printf("We are at the end!\n");
-                }
             }
+            
+            printf("We are at the end!\n");
         }
 
         /* Clean up */
