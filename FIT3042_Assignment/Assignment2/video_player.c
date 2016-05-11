@@ -184,7 +184,7 @@ int read_ppm_header(int screen_width, int screen_height)
     return 0;
 }
 
-int display_frame(SDL_Window *window, SDL_Surface *screenSurface, int screen_width, int screen_height)
+int display_frame(SDL_Surface *screenSurface, int screen_width, int screen_height)
 {
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
@@ -208,8 +208,6 @@ int display_frame(SDL_Window *window, SDL_Surface *screenSurface, int screen_wid
     }
 
     // printf("counter: %d\n", counter);
-
-    SDL_UpdateWindowSurface(window);
     return 0;
 }
 
@@ -283,13 +281,39 @@ void peek_screen_dimensions(int *screen_width, int *screen_height)
 void frame_update_loop(SDL_Window *window, SDL_Surface *screenSurface, int screen_width, int screen_height)
 {
     read_ppm_header(screen_width, screen_height);
-    display_frame(window, screenSurface, screen_width, screen_height);
+    display_frame(screenSurface, screen_width, screen_height);
+    SDL_UpdateWindowSurface(window);
     remove_frame_separator();
+}
+
+void timer_action(void *arg)
+{
+    printf("test");
+}
+
+Uint32 timer_callback(Uint32 interval, void *parameters)
+{
+    SDL_Event event;
+    SDL_UserEvent user;
+    user.type = SDL_USEREVENT;
+    user.code = 0;
+
+    user.data1 = &timer_action;
+    user.data2 = NULL;
+    event.type = SDL_USEREVENT;
+
+    event.user = user;
+    SDL_PushEvent(&event);
+
+    return interval;
 }
 
 int video_player_init(char **argv)
 {
     printf("Playing video %sms delay.\n", argv[1]);
+
+    // SDL_Event event;
+    // void (*fptr)(void *);
 
     /* Create SDL Window */
     SDL_Window *window = NULL;
@@ -298,7 +322,7 @@ int video_player_init(char **argv)
     /* Handle first ppm header */
     int screen_width = 0;
     int screen_height = 0;
-    int delay_ms = atoi(argv[1]);
+    // int delay_ms = atoi(argv[1]);
 
     /* Peek the dimensions from the first frame header */
     peek_screen_dimensions(&screen_width, &screen_height);
@@ -309,7 +333,7 @@ int video_player_init(char **argv)
         return -1;
     }
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
@@ -331,6 +355,19 @@ int video_player_init(char **argv)
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
 
+
+            // SDL_AddTimer(1000, timer_callback, NULL);
+            // while (SDL_WaitEvent (&event)) {
+            //     switch(event.type) {
+            //         case SDL_USEREVENT:
+            //             fptr = event.user.data1;
+            //             void *arg = event.user.data2;
+            //             fptr(arg);
+            //         default:
+            //             break;
+            //     }
+            // }
+
             /* Peek next character */
             int peek = 0;
 
@@ -343,7 +380,7 @@ int video_player_init(char **argv)
                 /* Schedule video frame update loop */
                 frame_update_loop(window, screenSurface, screen_width, screen_height);
 
-                SDL_Delay(delay_ms); // TODO remove this
+                // SDL_Delay(delay_ms); // TODO remove this
             }
             
             printf("We are at the end!\n");
