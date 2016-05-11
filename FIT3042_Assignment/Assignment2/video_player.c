@@ -195,7 +195,7 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
     Uint8 blue_channel = 0;
-    int counter = 0;
+    // int counter = 0;
 
     /* Display the next frame on the screen surface */
     for (int y = 0; y < screen_height; y++)
@@ -209,15 +209,24 @@ int display_frame(SDL_Surface *screenSurface, SDL_Window *window, int screen_wid
             blue_channel = fgetc(stdin);
 
             *p=SDL_MapRGB(screenSurface->format, red_channel, green_channel, blue_channel);
-            counter++;
+            // counter++;
         }
     }
 
-    printf("counter: %d\n", counter);
+    // printf("counter: %d\n", counter);
 
     SDL_UpdateWindowSurface(window);
     SDL_Delay(delay_ms); // TODO remove this
     return 0;
+}
+
+void remove_frame_separator()
+{
+    int num_bytes = sizeof(int);
+    for (int i = 0; i < num_bytes; i++)
+    {
+        fgetc(stdin);
+    }
 }
 
 int video_player_init(char **argv)
@@ -229,7 +238,6 @@ int video_player_init(char **argv)
     SDL_Surface *screenSurface = NULL;
 
     /* Handle first ppm header */
-    int first_frame = 1;
     int *dimensions = NULL;
     int screen_width = 0;
     int screen_height = 0;
@@ -245,16 +253,61 @@ int video_player_init(char **argv)
     memset(dimensions, 0, 2);
     dimensions[2] = '\0';
 
-    /* Read in the ppm header for the first frame */
-    if (read_ppm_header(dimensions) != 0)
+    /* Peek the dimensions from the first frame header */
+    int peek_char = '\0';
+    char *peek_buffer_1 = (char *) malloc(3*sizeof(char));
+    char *peek_buffer_2 = (char *) malloc(5*sizeof(char));
+    char *peek_buffer_3 = (char *) malloc(5*sizeof(char));
+
+    memset(peek_buffer_1, '\0', 3);
+    memset(peek_buffer_2, '\0', 5);
+    memset(peek_buffer_3, '\0', 5);
+
+    /* Magic Number */
+    while ((peek_char = fgetc(stdin)) != '\n')
     {
-        return -1;
+        peek_buffer_1[strlen(peek_buffer_1)] = peek_char;
+    }
+
+    /* Width */
+    while ((peek_char = fgetc(stdin)) != ' ')
+    {
+        peek_buffer_2[strlen(peek_buffer_2)] = peek_char;
+    }
+
+    /* Height */
+    while ((peek_char = fgetc(stdin)) != '\n')
+    {
+        peek_buffer_3[strlen(peek_buffer_3)] = peek_char;
     }
 
     /* Get screen dimensions from the current .ppm image */
-    screen_width = dimensions[0];
-    screen_height = dimensions[1];
+    screen_width = atoi(peek_buffer_2);
+    screen_height = atoi(peek_buffer_3);
     printf("width: %d, height %d\n", screen_width, screen_height);
+
+    /* Unpeek the first frame header */
+    ungetc('\n', stdin);
+    for (int i = strlen(peek_buffer_3); i > 0; i--)
+    {
+        ungetc(peek_buffer_3[i-1], stdin);
+    }
+
+    ungetc(' ', stdin);
+    for (int i = strlen(peek_buffer_2); i > 0; i--)
+    {
+        ungetc(peek_buffer_2[i-1], stdin);
+    }
+
+    ungetc('\n', stdin);
+    for (int i = strlen(peek_buffer_1); i > 0; i--)
+    {
+        ungetc(peek_buffer_1[i-1], stdin);
+    }
+
+    free(peek_buffer_1);
+    free(peek_buffer_2);
+    free(peek_buffer_3);
 
     /* Check the dimensions are positive integers */
     if (screen_width <= 0 || screen_height <= 0)
@@ -284,35 +337,13 @@ int video_player_init(char **argv)
             screenSurface = SDL_GetWindowSurface(window);
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0x00, 0xff));
 
-            if (!first_frame)
-            {
-                /* Read in the ppm header for this frame */
-                if (read_ppm_header(dimensions) != 0)
-                {
-                    return -1;
-                }
-
-                /* TODO Check the dimensions are the same */
-                //...
-            }
-
-            first_frame = 0;
-            display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
-            fgetc(stdin);
-            fgetc(stdin);
-            fgetc(stdin);
-            fgetc(stdin);
-
-            for (int i = 0; i < 59; i++)
+            for (int i = 0; i < 58; i++)
             {
                 printf("\nFRAME\n");
                 read_ppm_header(dimensions);
                 display_frame(screenSurface, window, screen_width, screen_height, delay_ms);
 
-                fgetc(stdin);
-                fgetc(stdin);
-                fgetc(stdin);
-                fgetc(stdin);
+                remove_frame_separator();
 
                 /* Peek next character */
                 int peek = fgetc(stdin);
