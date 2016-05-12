@@ -25,10 +25,10 @@ int check_valid_ppm(char *line_buffer, int line_buffer_size)
 
     line_buffer[i] = '\0';
 
-    /* Fail if magic number is not 'P6' */   
+    /* Fail if magic number is not 'P6' or 'P3' */   
     if (strcmp(line_buffer, "P6") != 0)
     {
-        printf("Not a valid PPM file! Magic number line was: %s\n", line_buffer);
+        printf("Not a valid PPM file! Magic number line was: %s\n. Expected values: [P6]\n", line_buffer);
         return -1;
     }
 
@@ -54,7 +54,7 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     /* Fail if magic number is not 'P6' */   
     if (strcmp(line_buffer, "255") != 0)
     {
-        printf("Not a valid max val: %s\n", line_buffer);
+        printf("Not a valid max val: %s\n. Expected values: [255]\n", line_buffer);
         return -1;
     }
 
@@ -185,7 +185,6 @@ int display_frame()
     Uint8 red_channel = 0;
     Uint8 green_channel = 0;
     Uint8 blue_channel = 0;
-    // int counter = 0;
 
     /* Display the next frame on the screen surface */
     for (int y = 0; y < SCREEN_HEIGHT; y++)
@@ -199,11 +198,9 @@ int display_frame()
             blue_channel = fgetc(stdin);
 
             *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
-            // counter++;
         }
     }
 
-    // printf("counter: %d\n", counter);
     return 0;
 }
 
@@ -281,7 +278,8 @@ int peek_next_char()
 
     /* 80 == 'P' which is the start of a new frame */
     if ((peek = fgetc(stdin)) != 80)
-    {    
+    {
+        printf("--- No more frames! ---\n");
         return -1;
     }
 
@@ -311,6 +309,11 @@ Uint32 timer_callback(Uint32 interval, void *param)
     SDL_PushEvent(&event);
 
     return interval;
+}
+
+void close()
+{
+
 }
 
 int video_player_init(char **argv)
@@ -353,10 +356,15 @@ int video_player_init(char **argv)
             SDL_Event event;
             void (*fptr)(void *);
 
-            SDL_AddTimer(delay_ms, timer_callback, NULL);
+            SDL_TimerID frame_update_timer = SDL_AddTimer(delay_ms, timer_callback, NULL);
 
             while (peek_next_char() == 0 && feof(stdin) == 0 && SDL_WaitEvent(&event)) {
                 switch(event.type) {
+                    case SDL_QUIT:
+                        printf("--- Closing video ---\n");
+                        SDL_RemoveTimer(frame_update_timer);
+                        SDL_Quit();
+                        return -1;
                     case SDL_USEREVENT:
                         fptr = event.user.data1;
                         void *arg = event.user.data2;
@@ -366,15 +374,14 @@ int video_player_init(char **argv)
                 }
             }
 
-            printf("--- End of file ---\n");
+            SDL_FreeSurface(SCREEN_SURFACE);
         }
 
         /* Clean up */
-        SDL_FreeSurface(SCREEN_SURFACE);
         SDL_DestroyWindow(WINDOW);
-        SDL_Quit();
     }
 
+    SDL_Quit();
     return 0;
 }
 
