@@ -88,7 +88,20 @@ Implementation details can be found in the documentation in video_player.h.
             [50]      - Do nothing.
             [51, 100] - Increase the saturation. 100 is most saturated.
 
-3. Cleaning
+
+3. Bugs and Limitations
+-----------------------
+I am not 100% sure that my image manipulations for contrast and saturation
+give the expected output. Based on my understanding of these functions,
+they are at least approximately correct. The virtua.rle file that I tested
+seemed very distorted at times, although this could be due to the low 
+resolution or high compression of these images.
+
+If the program is run without anything piped to it in the stdin stream,
+then it hangs indefinitely until manually cancelled.
+
+
+4. Cleaning
 ------------
 To remove all of the *.ppm files, *.rle files,  and binaries in the root
 directory, run the following:

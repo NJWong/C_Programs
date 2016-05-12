@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h> // move this to the image_manipulator.c
 #include <SDL.h>
 #include "video_player.h"
 #include "image_manipulator.h"

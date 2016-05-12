@@ -1,7 +1,4 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 #include "ppmplayer.h"
 #include "arg_parser.h"
 #include "video_player.h"
