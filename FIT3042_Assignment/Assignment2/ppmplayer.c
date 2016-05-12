@@ -9,7 +9,7 @@
 /************************************************************
 * Desc   : Primary function that determines whether the
 *          command line arguments are valid and then initiates
-*          the ppmplayer process.
+*          the video_player.
 *
 * Params : argc - the number of given command line arguments
 *          argv - an array of the command line arguments

@@ -3,28 +3,16 @@
 #include <SDL.h>
 #include "video_player.h"
 
-//header
-int check_valid_ppm(char *line_buffer, int line_buffer_size);
-int check_valid_max_val(char *line_buffer, int line_buffer_size);
-int check_width(char *line_buffer, int line_buffer_size);
-int check_height(char *line_buffer, int line_buffer_size);
-int read_ppm_header();
-int display_frame();
-void remove_frame_separator();
-int peek_screen_dimensions();
-int peek_next_char();
-void frame_update_loop(void *arg);
-Uint32 timer_callback(Uint32 interval, void *param);
-int video_player_init(char **argv);
-//end header
+/************* GLOBALS *************/
 
-/* GLOBALS */
 SDL_Window *WINDOW = NULL;
 SDL_Surface *SCREEN_SURFACE = NULL;
 int SCREEN_WIDTH = 0;
 int SCREEN_HEIGHT = 0;
 
-/* Returns 0 on complete run, else -1 for error or other flow interrupt. */
+/***********************************/
+
+/* Primary function to play the video */
 int video_player_init(char **argv)
 {
     printf("Playing video %sms delay.\n", argv[1]);
@@ -100,6 +88,7 @@ int video_player_init(char **argv)
     return 0; // Success!
 }
 
+/* Read the dimensions from the first frame header and use these for the SDL_Window */
 int peek_screen_dimensions()
 {
     /* Variables */
@@ -219,6 +208,7 @@ int peek_screen_dimensions()
     return 0; // success!
 }
 
+/* The timer callback function that points to the frame_update_loop() */
 Uint32 timer_callback(Uint32 interval, void *param)
 {
     SDL_Event event;
@@ -235,15 +225,23 @@ Uint32 timer_callback(Uint32 interval, void *param)
     return interval;
 }
 
+/* Core update loop */
 void frame_update_loop(void *arg)
 {
+    /* Process the frame header */
     read_ppm_header();
+
+    /* Read frame data and write to the screen */
     display_frame();
+
+    /* Update the window to show the current screen */
     SDL_UpdateWindowSurface(WINDOW);
+
+    /* Remove the -1 integer separator between frames */
     remove_frame_separator();
 }
 
-// returns 0 on success, -1 on failure
+/* Read and process the frame header */
 int read_ppm_header()
 {
     /* Variables */
@@ -319,6 +317,7 @@ int read_ppm_header()
     return 0; // success!
 }
 
+/* Validate the ppm frame format */
 int check_valid_ppm(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -347,6 +346,7 @@ int check_valid_ppm(char *line_buffer, int line_buffer_size)
     return 0; // success!
 }
 
+/* Validate the frame width */
 int check_width(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -373,6 +373,7 @@ int check_width(char *line_buffer, int line_buffer_size)
     return 0; //success!
 }
 
+/* Validate the frame height */
 int check_height(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -399,6 +400,7 @@ int check_height(char *line_buffer, int line_buffer_size)
     return 0; // success!
 }
 
+/* Validate the frame max value */
 int check_valid_max_val(char *line_buffer, int line_buffer_size)
 {
     /* Zero-initialize line_buffer */
@@ -426,6 +428,7 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     return 0; // success!
 }
 
+/* Read frame data and write it to the screen */
 int display_frame()
 {
     /* Variables for each channel */
@@ -453,8 +456,10 @@ int display_frame()
     return 0; // success!
 }
 
+/* Remove the -1 integer separator betwen each frame */
 void remove_frame_separator()
 {
+    /* Supports different systems that use different integer sizes */
     int num_bytes = sizeof(int);
     for (int i = 0; i < num_bytes; i++)
     {
@@ -462,6 +467,7 @@ void remove_frame_separator()
     }
 }
 
+/* Check if there is maybe another ppm frame in stdin */
 int peek_next_char()
 {
     /* Peek next character */
