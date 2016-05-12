@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <SDL.h>
 #include "video_player.h"
@@ -10,13 +11,187 @@ SDL_Surface *SCREEN_SURFACE = NULL;
 int SCREEN_WIDTH = 0;
 int SCREEN_HEIGHT = 0;
 
+/* Values for image manipulation - 50 is default */
+int M_BRIGHTNESS = 50;
+int M_CONTRAST = 50;
+int M_SATURATION = 50;
+
 /***********************************/
 
-/* Primary function to play the video */
-int video_player_init(char **argv)
+float find_max(float r, float g, float b)
 {
-    printf("Playing video %sms delay.\n", argv[1]);
+    float max = r;
+
+    if ((g > r) && (g > b))
+    {
+        max = g;
+    }
+    else if ((b > r) && (b > g))
+    {
+        max = b;
+    }
+
+    return max;
+}
+
+float find_min(float r, float g, float b)
+{
+    float min = r;
+
+    if ((g < r) && (g < b))
+    {
+        min = g;
+    }
+    else if ((b < r) && (b < g))
+    {
+        min = b;
+    }
+
+    return min;
+}
+
+void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
+{
+    /* Convert RGB values to floats */
+    float r_float = (float)r;
+    float g_float = (float)g;
+    float b_float = (float)b;
+
+    /* Divide by 255 to get values between 0 and 1 */
+    r_float /= 255.0;
+    g_float /= 255.0;
+    b_float /= 255.0;
+
+    float max = find_max(r_float, g_float, b_float);
+    float min = find_min(r_float, g_float, b_float);
+
+    float delta = max - min;
+
+    /* CALCULATE THE HUE */
+    if (delta == 0.0)
+    {
+        *h = 0;
+    }
+    else if (r_float == max)
+    {
+        *h = (g_float - b_float) / delta;
+    }
+    else if (g_float == max)
+    {
+        *h = 2 + ((b_float - r_float) / delta);
+    }
+    else
+    {
+        *h = 4 + ((r_float - g_float) / delta);
+    }
+
+    /* Convert to degrees */
+    *h *= 60;
+    if (*h < 0)
+    {
+        h += 360;
+    }
+
+    /* CALCULATE THE SATURATION */
+    if (max == 0)
+    {
+        *s = 0;
+    }
+    else
+    {
+        *s = delta / max;
+    }
+
+    /* CALCULATE THE VALUE (a.k.a brightness) */
+    *v = max;
+}
+
+void HSV_to_RGB()
+{
+
+}
+
+void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
+{
+    float h = 0;
+    float s = 0;
+    float v = 0;
+
+    printf("r: %d, g: %d, b: %d\n", *r, *g, *b);
+
+    /* Convert RGB to HSB */
+    RGB_to_HSV(*r, *g, *b, &h, &s, &v);
+    printf("h: %f, s: %f, v: %f\n", h, s, v);
+
+    exit(0);
+
+    /* Change brightness if we need to */
+
+    /* Change contrast if we need to */
+
+    /* Change saturation if we need to */
+}
+
+// TODO MOVE THIS BACK IN THE RIGHT POSITION
+/* Read frame data and write it to the screen */
+int display_frame()
+{
+    /* Variables for each channel */
+    Uint8 red_channel = 0;
+    Uint8 green_channel = 0;
+    Uint8 blue_channel = 0;
+
+    /* Iterate across all pixels on the screen */
+    for (int y = 0; y < SCREEN_HEIGHT; y++)
+    {
+        for (int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            /* Create a pointer to the next pixel on the surface */
+            int *p = SCREEN_SURFACE->pixels + y * SCREEN_SURFACE->pitch + x * SCREEN_SURFACE->format->BytesPerPixel;
+
+            /* Read in the values from the ppm stream */
+            set_next_pixel_RGB(&red_channel, &green_channel, &blue_channel);
+
+            /* Perform image manipulation if we need to i.e. if any modifier is not 50 */
+            if ((M_BRIGHTNESS != 50) || (M_CONTRAST != 50) || (M_SATURATION != 50))
+            {
+                manipulate_image(&red_channel, &green_channel, &blue_channel);
+            }
+
+            /* Draw the pixel with the correct colours */
+            *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
+        }
+    }
+
+    return 0; // success!
+}
+
+/* Primary function to play the video */
+int video_player_init(int argc, char **argv)
+{
+    /* Set the values for colour manipulation */
+    for (int i = 2; i < argc; i++)
+    {
+        /* Note: These atoi() conversions are safe since arg_parser has performed validation */
+        switch(i)
+        {
+            case 2:
+                M_BRIGHTNESS = atoi(argv[i]);
+                break;
+            case 3:
+                M_CONTRAST = atoi(argv[i]);
+                break;
+            case 4:
+                M_SATURATION = atoi(argv[i]);
+                break;
+            default:
+                break;
+        }
+    }
+
     int delay_ms = atoi(argv[1]);
+    printf("Playing video %dms delay.\n", delay_ms);
+    printf("Image manipulation values:\n\tBrightness: %d\n\tContrast: %d\n\tSaturation: %d\n", M_BRIGHTNESS, M_CONTRAST, M_SATURATION);
 
     /* Peek the dimensions from the first frame header. Return -1 for invalid header. */
     if (peek_screen_dimensions() != 0)
@@ -428,33 +603,14 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     return 0; // success!
 }
 
-/* Read frame data and write it to the screen */
-int display_frame()
+void set_next_pixel_RGB(Uint8 *red_channel, Uint8 *green_channel, Uint8 *blue_channel)
 {
-    /* Variables for each channel */
-    Uint8 red_channel = 0;
-    Uint8 green_channel = 0;
-    Uint8 blue_channel = 0;
-
-    /* Iterate across all pixels on the screen */
-    for (int y = 0; y < SCREEN_HEIGHT; y++)
-    {
-        for (int x = 0; x < SCREEN_WIDTH; x++)
-        {
-            int *p = SCREEN_SURFACE->pixels + y * SCREEN_SURFACE->pitch + x * SCREEN_SURFACE->format->BytesPerPixel;
-
-            /* Read in the values from the ppm stream */
-            red_channel = fgetc(stdin);
-            green_channel = fgetc(stdin);
-            blue_channel = fgetc(stdin);
-
-            /* Draw the pixel with the correct colours */
-            *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
-        }
-    }
-
-    return 0; // success!
+    *red_channel = fgetc(stdin);
+    *green_channel = fgetc(stdin);
+    *blue_channel = fgetc(stdin);
 }
+
+// INSERT THE FUNCTION HERE
 
 /* Remove the -1 integer separator betwen each frame */
 void remove_frame_separator()

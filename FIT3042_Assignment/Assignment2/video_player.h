@@ -1,5 +1,6 @@
 #include <stdint.h>
 typedef uint32_t Uint32;
+typedef uint8_t Uint8;
 
 /******************************************************************************
 * Name    : video_player_init
@@ -7,11 +8,15 @@ typedef uint32_t Uint32;
 *           Sets up and destroy required SDL components. SDL wait event loop is
 *           created and run from here.
 *
-* Params  : argv - an array of the command line arguments.
+*			Also sets the flags for image manipulation based on the command
+*			line arguments.
+*
+* Params  : argc - the number of command line arguments passed in.
+*			argv - an array of the command line arguments.
 *           
 * Return  : 0 on success, -1 on failure or SDL_QUIT interrupt.
 ******************************************************************************/
-int video_player_init(char **argv);
+int video_player_init(int argc, char **argv);
 
 /******************************************************************************
 * Name    : peek_screen_dimensions
@@ -112,6 +117,19 @@ int check_height(char *line_buffer, int line_buffer_size);
 * Return  : 0 when max val is valid, -1 otherwise.
 ******************************************************************************/
 int check_valid_max_val(char *line_buffer, int line_buffer_size);
+
+/******************************************************************************
+* Name    : set_next_pixel_RGB
+* Desc    : Function that sets the RGB colour values of the next pixel from the
+*			stdin stream.
+*
+* Params  : red_channel - pointer to where the red_channel variable is stored.
+*			green_channel - pointer to where the green_channel variable is stored.
+*			blue_channel - pointer to where the blue_channel variable is stored.
+*           
+* Return  : None.
+******************************************************************************/
+void set_next_pixel_RGB(Uint8 *red_channel, Uint8 *green_channel, Uint8 *blue_channel);
 
 /******************************************************************************
 * Name    : display_frame
