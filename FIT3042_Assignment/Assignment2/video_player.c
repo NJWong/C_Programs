@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h> // move this to the image_manipulator.c
 #include <SDL.h>
 #include "video_player.h"
 
@@ -50,6 +51,11 @@ float find_min(float r, float g, float b)
     return min;
 }
 
+/*
+    Algorithm adapted from:
+    www.rapidtables.com/convert/rgb-to-hsv.htm
+    www.cs.rit.edu/~ncs/color/t_convert.html
+*/
 void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
 {
     /* Convert RGB values to floats */
@@ -99,16 +105,89 @@ void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
     }
     else
     {
-        *s = delta / max;
+        *s = (delta / max) * 100; // * 100 to convert to percentage
     }
 
     /* CALCULATE THE VALUE (a.k.a brightness) */
-    *v = max;
+    *v = max * 100; // *100 to convert to percentage
 }
 
-void HSV_to_RGB()
+/*
+    Algorithm adapted from:
+    www.rapidtables.com/convert/hsv-to-rgb.htm
+    www.cs.rit.edu/~ncs/color/t_convert.html
+*/
+void HSV_to_RGB(float *h, float *s, float *v, Uint8 *r, Uint8 *g, Uint8 *b)
 {
+    printf("before convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
+    int i = 0;
+    float f = 0.0;
+    float p = 0.0;
+    float q = 0.0;
+    float t = 0.0;
 
+
+    *r = 10;
+    *g = 10;
+    *b = 10;
+
+    /* If the image is achromatic (i.e. grey) */
+    if (*s == 0)
+    {
+        *r = (Uint8)*v;
+        *g = (Uint8)*v;
+        *b = (Uint8)*v;
+    }
+
+    *h /= 60.0;
+    i = (int)floorf(*h);
+    f = *h - i;
+    p = *v * (1 - *s);
+    q = *v * (1 - *s * f);
+    t = *v * (1 - *s * (1 - f));
+
+    switch(i)
+    {
+        case 0:
+            *r = *v;
+            *g = t;
+            *b = p;
+            break;
+        case 1:
+            *r = q;
+            *g = *v;
+            *b = p;
+            break;
+        case 2:
+            *r = p;
+            *g = *v;
+            *b = t;
+            break;
+        case 3:
+            *r = p;
+            *g = q;
+            *b = *v;
+            break;
+        case 4:
+            *r = t;
+            *g = p;
+            *b = *v;
+            break;
+        default:
+            *r = *v;
+            *g = p;
+            *b = q;
+            break;
+    }
+
+    printf("after convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
+}
+
+void change_brightness(float *v, int factor)
+{
+    printf("my v: %f\n", *v);
+    *v = (float)M_BRIGHTNESS / 100; // divide by 100 to get a percentage
+    printf("new brightness: %f\n", *v);
 }
 
 void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
@@ -117,19 +196,28 @@ void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
     float s = 0;
     float v = 0;
 
-    printf("r: %d, g: %d, b: %d\n", *r, *g, *b);
+    printf("original rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
 
     /* Convert RGB to HSB */
     RGB_to_HSV(*r, *g, *b, &h, &s, &v);
-    printf("h: %f, s: %f, v: %f\n", h, s, v);
-
-    exit(0);
+    printf("original hsv: h: %f, s: %f, v: %f\n", h, s, v);
 
     /* Change brightness if we need to */
+    if (M_BRIGHTNESS != 50)
+    {
+        change_brightness(&v, M_BRIGHTNESS);
+    }
+    printf("updated hsv: h: %f, s: %f, v: %f\n", h, s, v);
 
     /* Change contrast if we need to */
 
     /* Change saturation if we need to */
+
+
+     // Convert HSB back to RGB 
+    HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
+    printf("updated rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
+
 }
 
 // TODO MOVE THIS BACK IN THE RIGHT POSITION
@@ -157,6 +245,9 @@ int display_frame()
             {
                 manipulate_image(&red_channel, &green_channel, &blue_channel);
             }
+
+            printf("FINAL rgb: r: %d, g: %d, b: %d\n", red_channel, green_channel, blue_channel);
+            exit(1);
 
             /* Draw the pixel with the correct colours */
             *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
