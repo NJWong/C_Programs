@@ -9,79 +9,95 @@
 *               COMMAND LINE ARGUMENT VALIDATION
 ************************************************************/
 
-/************************************************************
-* Desc   : Function that checks whether the command line
-*          arguments are valid or not.
-*
-* Params : argc - the number of given command line arguments
-*          argv - an array of the command line arguments
-*           
-* Return : 0 for success, -1 for failure.
-************************************************************/
+/* Validate a command line argument. */
+int validate_arg(int arg_index, char **argv)
+{
+    /* Variables */
+    int arg1 = 0;
+    int arg2 = 0;
+    int arg3 = 0;
+    int arg4 = 0;
+
+    switch(arg_index) {
+        /* arg1 must be a positive integer */
+        case 1:
+            arg1 = atoi(argv[1]);
+            if (arg1 <= 0)
+            {
+                printf("Error: validate_arg() - arg1 is not valid.\n");
+                return -1;
+            }
+            break;
+
+        /* arg2 must be an integer between 0 and 100 (inclusive) */
+        case 2:
+            arg2 = atoi(argv[2]);
+            if ((arg2 < 0) || (arg2 > 100))
+            {
+                printf("Error: validate_arg() - arg2 is not valid.\n");
+                return -1;
+            }
+            break;
+
+        /* arg3 must be an integer between 0 and 100 (inclusive) */
+        case 3:
+            arg3 = atoi(argv[3]);
+            if ((arg3 < 0) || (arg3 > 100))
+            {
+                printf("Error: validate_arg() - arg3 is not valid.\n");
+                return -1;
+            }
+            break;
+
+        /* arg3 must be an integer between 0 and 100 (inclusive) */
+        case 4:
+            arg4 = atoi(argv[4]);
+            if ((arg4 < 0) || (arg4 > 100))
+            {
+                printf("Error: validate_arg() - arg4 is not valid.\n");
+                return -1;
+            }
+            break;
+
+        /* Handle incorrect arg_index */
+        default:
+            fprintf(stderr, "Error: validate_args() - invalid arg_index: %d\n", arg_index);
+            return -1;
+    }
+
+    return 0; // success!
+}
+
 int validate_args(int argc, char **argv)
 {
-    int correct_number_of_args = check_number_of_args(argc);
-    if (correct_number_of_args == -1)
+
+    /* Check if correct number of arguments are passed in */
+    if (check_number_of_args(argc) != 0)
     {
         return -1;
     }
 
     /* Validate the command line arguments */
+    for (int arg_index = 1; arg_index < argc; arg_index++)
+    {
+        if (validate_arg(arg_index, argv) != 0)
+        {
+            return -1;
+        }
+    }
 
-    return 0;
+    return 0; // success!
 }
 
-/************************************************************
-* Desc   : Function that checks if there is the correct
-*          number of arguments passed through the command line
-*          Minimum is 1 - the delay (in ms) between frames
-*
-* Params : argc - the number of given command line arguments
-*          argv - an array of the command line arguments
-*           
-* Return : 0 for success, -1 for failure.
-************************************************************/
 int check_number_of_args(int argc)
 {
-    if (argc == 2)
+    if ((argc <= 1) || (argc > 5))
     {
-        return 0;
-    }
-    else {
-        /* Note: (argc - 1) is used because argv[0] is './rledecode' */
-        fprintf(stderr, "Incorrect number of arguments: %d.\n", (argc - 1));
+        /* Note: (argc - 1) is used because argv[0] is './ppmplayer' */
+        fprintf(stderr, "Error: check_number_of_args() - Incorrect number of arguments: %d.\n", (argc - 1));
         return -1;
     }
+    
+    return 0; // success!
 }
 
-/************************************************************
-* Desc   : Function that deligates which argument to handle
-*          to the appropriate handler function.
-*
-* Params : arg_index - the 
-*          argc - the number of given command line arguments
-*           
-* Return : 0 for success, -1 for failure.
-************************************************************/
-int parse_arg(int arg_index, char **argv)
-{
-    /* Flag that determines success or failure */
-    int flag = -1;
-
-    // switch(arg_index) {
-    //     case 1:
-    //         flag = handle_arg1(argv[1]);
-    //         break;
-    //     case 2:
-    //         flag = handle_arg2(argv[2]);
-    //         break;
-    //     case 3:
-    //         flag = handle_arg3(argv[3], argv[4]);
-    //         break;
-    //     default:
-    //         fprintf(stderr, "Error: parse_argument - incorrect arg_index");
-    //         break;
-    // }
-
-    return flag;
-}

@@ -26,14 +26,14 @@ int ppmplayer(int argc, char **argv)
     if (validate_args(argc, argv) != 0)
     {
         /* If invalid, then stop here and return to main */
-        fprintf(stderr, "Args are not valid.\n");
+        fprintf(stderr, "Error: Args are not valid.\n");
         return -1;
     }
 
     /* Initiate the video player */
     if(video_player_init(argv) != 0)
     {
-        printf("Video did not finish playing.\n");
+        printf("Warning: Video did not finish playing.\n");
         return -1;
     }
 
