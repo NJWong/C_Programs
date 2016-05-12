@@ -7,8 +7,8 @@ LINK_MATH	 = -lm
 
 all: clean_bins ppmplayer
 
-ppmplayer: arg_parser.c video_player.c ppmplayer.c driver.c
-	$(CC) $(INCLUDE_SDL2) $(CFLAGS) $(MODE) -o ppmplayer arg_parser.c video_player.c ppmplayer.c driver.c $(LINK_SDL2) $(LINK_MATH)
+ppmplayer: arg_parser.c image_manipulator.c video_player.c ppmplayer.c driver.c
+	$(CC) $(INCLUDE_SDL2) $(CFLAGS) $(MODE) -o ppmplayer arg_parser.c image_manipulator.c video_player.c ppmplayer.c driver.c $(LINK_SDL2) $(LINK_MATH)
 
 clean: clean_bins clean_ppm clean_rle
 
