@@ -20,7 +20,7 @@
 ************************************************************/
 int ppmplayer(int argc, char **argv)
 {
-    fprintf(stderr, "\n--- Starting ppmplayer ---\n");
+    fprintf(stderr, "--- Starting ppmplayer ---\n\n");
 
     /* Check that the command line arguments are valid */
     if (validate_args(argc, argv) != 0)
@@ -37,6 +37,6 @@ int ppmplayer(int argc, char **argv)
         return -1;
     }
 
-    printf("Video finished playing.\n");
+    printf("\n--- Closing ppmplayer ---\n");
     return 0;
 }
