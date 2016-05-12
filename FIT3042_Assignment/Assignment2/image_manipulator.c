@@ -1,43 +1,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h> // move this to the image_manipulator.c
+#include <math.h>
 #include "image_manipulator.h"
 
 extern int M_BRIGHTNESS;
 extern int M_CONTRAST;
 extern int M_SATURATION;
 
-float find_max(float r, float g, float b)
+void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
 {
-    float max = r;
+    /* HSV variables */
+    float h = 0;
+    float s = 0;
+    float v = 0;
 
-    if ((g > r) && (g > b))
-    {
-        max = g;
-    }
-    else if ((b > r) && (b > g))
-    {
-        max = b;
-    }
+    /* Convert RGB to HSB */
+    RGB_to_HSV(*r, *g, *b, &h, &s, &v);
 
-    return max;
-}
-
-float find_min(float r, float g, float b)
-{
-    float min = r;
-
-    if ((g < r) && (g < b))
+    /* Change brightness if we need to */
+    if (M_BRIGHTNESS != 50)
     {
-        min = g;
-    }
-    else if ((b < r) && (b < g))
-    {
-        min = b;
+        change_brightness(&(*r), &(*g), &(*b));
+        /* Note: we don't use HSV so don't need to convert back */
     }
 
-    return min;
+    /* Change contrast if we need to */
+    if (M_CONTRAST != 50)
+    {
+        change_contrast(&v);
+        HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
+    }
+
+    /* Change saturation if we need to */
+    if (M_SATURATION != 50)
+    {
+        change_saturation(&s);
+        HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
+    }   
 }
 
 /*
@@ -101,6 +101,38 @@ void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
     *v = max;
 }
 
+float find_max(float r, float g, float b)
+{
+    float max = r;
+
+    if ((g > r) && (g > b))
+    {
+        max = g;
+    }
+    else if ((b > r) && (b > g))
+    {
+        max = b;
+    }
+
+    return max;
+}
+
+float find_min(float r, float g, float b)
+{
+    float min = r;
+
+    if ((g < r) && (g < b))
+    {
+        min = g;
+    }
+    else if ((b < r) && (b < g))
+    {
+        min = b;
+    }
+
+    return min;
+}
+
 /*
     Algorithm adapted from:
     www.rapidtables.com/convert/hsv-to-rgb.htm
@@ -108,7 +140,6 @@ void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
 */
 void HSV_to_RGB(float *h, float *s, float *v, Uint8 *r, Uint8 *g, Uint8 *b)
 {
-    // printf("before convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
 
     float r_float = 0.0;
     float g_float = 0.0;
@@ -117,8 +148,6 @@ void HSV_to_RGB(float *h, float *s, float *v, Uint8 *r, Uint8 *g, Uint8 *b)
     float c = (*v) * (*s);
     float x = c * (1 - (fmodf( (*h) / 60.0, 2) - 1));
     float m = (*v) - c;
-
-    // printf("variables: c: %f, x: %f, m: %f\n", c, x, m);
 
     if ((*h >= 0) && (*h < 60))
     {
@@ -160,20 +189,16 @@ void HSV_to_RGB(float *h, float *s, float *v, Uint8 *r, Uint8 *g, Uint8 *b)
     *r = (r_float + m) * 255;
     *g = (g_float + m) * 255;
     *b = (b_float + m) * 255;
-
-    // printf("after convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
 }
 
 void change_brightness(Uint8 *r, Uint8 *g, Uint8 *b)
 {
-
-    /* Factor to increase the brightness by. 1->255 */
+    /* Factor to increase the brightness by */
     int factor = 0;
     float ratio = ((float)M_BRIGHTNESS - 50.0) / 50.0;
-    // printf("ratio: %f\n", ratio);
     factor = (int) (ratio * 255);
 
-    /* Modify red */
+    /* Modify red and ensure it is in range */
     if ((*r + factor) > 255)
     {
         *r = 255;
@@ -187,7 +212,7 @@ void change_brightness(Uint8 *r, Uint8 *g, Uint8 *b)
         *r += factor;
     }
 
-    /* Modify green */
+    /* Modify green and ensure it is in range */
     if ((*g + factor) > 255)
     {
         *g = 255;
@@ -201,7 +226,7 @@ void change_brightness(Uint8 *r, Uint8 *g, Uint8 *b)
         *g += factor;
     }
 
-    /* Modify blue */
+    /* Modify blue and ensure it is in range */
     if ((*b + factor) > 255)
     {
         *b = 255;
@@ -216,11 +241,32 @@ void change_brightness(Uint8 *r, Uint8 *g, Uint8 *b)
     }
 }
 
+void change_contrast(float *v)
+{
+    /* Set the factor to change the contrast */
+    float factor = ((float)M_CONTRAST - 50.0) / 50.0;
+
+    *v += factor;
+
+    /* *v must be between 0.0 and 1.0 */
+    if (*v > 1.0)
+    {
+        *v = 1.0;
+    }
+    else if (*v < 0.0)
+    {
+        *v = 0.0;
+    }
+}
+
 void change_saturation(float *s)
 {
+    /* Set the factor to change the saturation */
     float factor = ((float)M_SATURATION - 50.0) / 50.0;
+    
     *s += factor;
 
+    /* *s must be between 0.0 and 1.0 */
     if (*s > 1.0)
     {
         *s = 1.0;
@@ -229,42 +275,4 @@ void change_saturation(float *s)
     {
         *s = 0.0;
     }
-}
-
-void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
-{
-    float h = 0;
-    float s = 0;
-    float v = 0;
-
-    // printf("original rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
-
-    /* Convert RGB to HSB */
-    RGB_to_HSV(*r, *g, *b, &h, &s, &v);
-    // printf("original hsv: h: %f, s: %f, v: %f\n", h, s, v);
-
-    /* Change brightness if we need to */
-    if (M_BRIGHTNESS != 50)
-    {
-        change_brightness(&(*r), &(*g), &(*b));
-    }
-    // printf("updated hsv: h: %f, s: %f, v: %f\n", h, s, v);
-
-    /* Change contrast if we need to */
-    if (M_CONTRAST != 50)
-    {
-        // change_saturation(&s);
-    }
-
-    /* Change saturation if we need to */
-    if (M_SATURATION != 50)
-    {
-        change_saturation(&s);
-    }
-
-
-     // Convert HSB back to RGB
-    HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
-    // printf("updated rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
-
 }

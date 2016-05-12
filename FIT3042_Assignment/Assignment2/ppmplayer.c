@@ -26,7 +26,7 @@ int ppmplayer(int argc, char **argv)
     if (validate_args(argc, argv) != 0)
     {
         /* If invalid, then stop here and return to main */
-        fprintf(stderr, "Error: Args are not valid.\n");
+        printf("Error: Args are not valid.\n");
         return -1;
     }
 

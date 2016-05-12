@@ -28,6 +28,8 @@ int video_player_init(int argc, char **argv);
 *
 *           Also checks the frame header is valid ppm format.
 *
+*			Was probably overcomplicating things, but it was fun :)
+*
 * Params  : 
 *           
 * Return  : 0 on success, -1 on failure.

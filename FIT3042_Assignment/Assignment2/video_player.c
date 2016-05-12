@@ -20,43 +20,6 @@ int M_SATURATION = 50;
 
 /***********************************/
 
-// TODO MOVE THIS BACK IN THE RIGHT POSITION
-/* Read frame data and write it to the screen */
-int display_frame()
-{
-    /* Variables for each channel */
-    Uint8 red_channel = 0;
-    Uint8 green_channel = 0;
-    Uint8 blue_channel = 0;
-
-    /* Iterate across all pixels on the screen */
-    for (int y = 0; y < SCREEN_HEIGHT; y++)
-    {
-        for (int x = 0; x < SCREEN_WIDTH; x++)
-        {
-            /* Create a pointer to the next pixel on the surface */
-            int *p = SCREEN_SURFACE->pixels + y * SCREEN_SURFACE->pitch + x * SCREEN_SURFACE->format->BytesPerPixel;
-
-            /* Read in the values from the ppm stream */
-            set_next_pixel_RGB(&red_channel, &green_channel, &blue_channel);
-
-            /* Perform image manipulation if we need to i.e. if any modifier is not 50 */
-            if ((M_BRIGHTNESS != 50) || (M_CONTRAST != 50) || (M_SATURATION != 50))
-            {
-                manipulate_image(&red_channel, &green_channel, &blue_channel);
-            }
-
-            // printf("FINAL rgb: r: %d, g: %d, b: %d\n", red_channel, green_channel, blue_channel);
-            // exit(1);
-
-            /* Draw the pixel with the correct colours */
-            *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
-        }
-    }
-
-    return 0; // success!
-}
-
 /* Primary function to play the video */
 int video_player_init(int argc, char **argv)
 {
@@ -81,13 +44,14 @@ int video_player_init(int argc, char **argv)
     }
 
     int delay_ms = atoi(argv[1]);
+
     printf("Playing video %dms delay.\n", delay_ms);
     printf("Image manipulation values:\n\tBrightness: %d\n\tContrast: %d\n\tSaturation: %d\n", M_BRIGHTNESS, M_CONTRAST, M_SATURATION);
 
     /* Peek the dimensions from the first frame header. Return -1 for invalid header. */
     if (peek_screen_dimensions() != 0)
     {
-        printf("Error: Tried to peek header with invalid values.");
+        printf("Error: Tried to peek header with invalid values.\n");
         return -1;
     }
 
@@ -356,10 +320,10 @@ int read_ppm_header()
     free(line_buffer);
 
     /* Check for comments */
-    // while (check_for_comment_line() == 1)
-    // {
-    //     printf("Removing comment line.\n");
-    // }
+    while (check_for_comment_line() == 1)
+    {
+        printf("Removing comment line.\n");
+    }
 
     /* Allocate memory for the width and the height. */
     line_buffer_size = 6;
@@ -389,10 +353,10 @@ int read_ppm_header()
     free(line_buffer);
 
     /* Check for comments */
-    // while (check_for_comment_line() == 1)
-    // {
-    //     printf("Removing comment line.\n");
-    // }
+    while (check_for_comment_line() == 1)
+    {
+        printf("Removing comment line.\n");
+    }
 
     /* Allocate memory for the max value - we are expecting 255. */
     line_buffer_size = 4;
@@ -412,13 +376,6 @@ int read_ppm_header()
     }
 
     /* Free our memory */
-    free(line_buffer);
-
-    /* Check for comments */
-    // while (check_for_comment_line() == 1)
-    // {
-    //     printf("Removing comment line.\n");
-    // }
 
     return 0; // success!
 }
@@ -534,6 +491,7 @@ int check_valid_max_val(char *line_buffer, int line_buffer_size)
     return 0; // success!
 }
 
+/* Read in the next pixel values from stdin */
 void set_next_pixel_RGB(Uint8 *red_channel, Uint8 *green_channel, Uint8 *blue_channel)
 {
     *red_channel = fgetc(stdin);
@@ -541,7 +499,38 @@ void set_next_pixel_RGB(Uint8 *red_channel, Uint8 *green_channel, Uint8 *blue_ch
     *blue_channel = fgetc(stdin);
 }
 
-// INSERT THE FUNCTION HERE
+/* Read frame data and write it to the screen */
+int display_frame()
+{
+    /* Variables for each channel */
+    Uint8 red_channel = 0;
+    Uint8 green_channel = 0;
+    Uint8 blue_channel = 0;
+
+    /* Iterate across all pixels on the screen */
+    for (int y = 0; y < SCREEN_HEIGHT; y++)
+    {
+        for (int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            /* Create a pointer to the next pixel on the surface */
+            int *p = SCREEN_SURFACE->pixels + y * SCREEN_SURFACE->pitch + x * SCREEN_SURFACE->format->BytesPerPixel;
+
+            /* Read in the values from the ppm stream */
+            set_next_pixel_RGB(&red_channel, &green_channel, &blue_channel);
+
+            /* Perform image manipulation if we need to i.e. if any modifier is not 50 */
+            if ((M_BRIGHTNESS != 50) || (M_CONTRAST != 50) || (M_SATURATION != 50))
+            {
+                manipulate_image(&red_channel, &green_channel, &blue_channel);
+            }
+
+            /* Draw the pixel with the correct colours */
+            *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
+        }
+    }
+
+    return 0; // success!
+}
 
 /* Remove the -1 integer separator betwen each frame */
 void remove_frame_separator()
@@ -572,60 +561,3 @@ int peek_next_char()
 
     return 0; // success!
 }
-
-// int i = 0;
-    // float f = 0.0;
-    // float p = 0.0;
-    // float q = 0.0;
-    // float t = 0.0;
-
-    // /* If the image is achromatic (i.e. grey) */
-    // if (*s == 0)
-    // {
-    //     *r = (Uint8)*v;
-    //     *g = (Uint8)*v;
-    //     *b = (Uint8)*v;
-    //     // return; // skip processing!
-    // }
-
-    // *h /= 60.0;
-    // i = (int)floorf(*h);
-    // printf("i: %d\n", i);
-    // f = *h - i;
-    // p = *v * (1 - *s);
-    // q = *v * (1 - *s * f);
-    // t = *v * (1 - *s * (1 - f));
-
-    // switch(i)
-    // {
-    //     case 0:
-    //         r_float = *v;
-    //         g_float = t;
-    //         b_float = p;
-    //         break;
-    //     case 1:
-    //         r_float = q;
-    //         g_float = *v;
-    //         b_float = p;
-    //         break;
-    //     case 2:
-    //         r_float = p;
-    //         g_float = *v;
-    //         b_float = t;
-    //         break;
-    //     case 3:
-    //         r_float = p;
-    //         g_float = q;
-    //         b_float = *v;
-    //         break;
-    //     case 4:
-    //         r_float = t;
-    //         g_float = p;
-    //         b_float = *v;
-    //         break;
-    //     default:
-    //         r_float = *v;
-    //         g_float = p;
-    //         b_float = q;
-    //         break;
-    // }
