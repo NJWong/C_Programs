@@ -105,11 +105,11 @@ void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
     }
     else
     {
-        *s = (delta / max) * 100; // * 100 to convert to percentage
+        *s = (delta / max);
     }
 
     /* CALCULATE THE VALUE (a.k.a brightness) */
-    *v = max * 100; // *100 to convert to percentage
+    *v = max;
 }
 
 /*
@@ -119,75 +119,112 @@ void RGB_to_HSV(Uint8 r, Uint8 g, Uint8 b, float *h, float *s, float *v)
 */
 void HSV_to_RGB(float *h, float *s, float *v, Uint8 *r, Uint8 *g, Uint8 *b)
 {
-    printf("before convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
-    int i = 0;
-    float f = 0.0;
-    float p = 0.0;
-    float q = 0.0;
-    float t = 0.0;
+    // printf("before convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
 
+    float r_float = 0.0;
+    float g_float = 0.0;
+    float b_float = 0.0;
 
-    *r = 10;
-    *g = 10;
-    *b = 10;
+    float c = (*v) * (*s);
+    float x = c * (1 - (fmodf( (*h) / 60.0, 2) - 1));
+    float m = (*v) - c;
 
-    /* If the image is achromatic (i.e. grey) */
-    if (*s == 0)
+    // printf("variables: c: %f, x: %f, m: %f\n", c, x, m);
+
+    if ((*h >= 0) && (*h < 60))
     {
-        *r = (Uint8)*v;
-        *g = (Uint8)*v;
-        *b = (Uint8)*v;
+        r_float = c;
+        g_float = x;
+        b_float = 0;
+    }
+    else if ((*h >= 60) && (*h < 120))
+    {
+        r_float = x;
+        g_float = c;
+        b_float = 0;
+    }
+    else if ((*h >= 120) && (*h < 180))
+    {
+        r_float = 0;
+        g_float = c;
+        b_float = x;
+    }
+    else if ((*h >= 180) && (*h < 240))
+    {
+        r_float = 0;
+        g_float = x;
+        b_float = c;
+    }
+    else if ((*h >= 240) && (*h < 300))
+    {
+        r_float = x;
+        g_float = 0;
+        b_float = c;
+    }
+    else if ((*h >= 300) && (*h < 360))
+    {
+        r_float = c;
+        g_float = 0;
+        b_float = x;
     }
 
-    *h /= 60.0;
-    i = (int)floorf(*h);
-    f = *h - i;
-    p = *v * (1 - *s);
-    q = *v * (1 - *s * f);
-    t = *v * (1 - *s * (1 - f));
+    *r = (r_float + m) * 255;
+    *g = (g_float + m) * 255;
+    *b = (b_float + m) * 255;
 
-    switch(i)
-    {
-        case 0:
-            *r = *v;
-            *g = t;
-            *b = p;
-            break;
-        case 1:
-            *r = q;
-            *g = *v;
-            *b = p;
-            break;
-        case 2:
-            *r = p;
-            *g = *v;
-            *b = t;
-            break;
-        case 3:
-            *r = p;
-            *g = q;
-            *b = *v;
-            break;
-        case 4:
-            *r = t;
-            *g = p;
-            *b = *v;
-            break;
-        default:
-            *r = *v;
-            *g = p;
-            *b = q;
-            break;
-    }
-
-    printf("after convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
+    // printf("after convert back r: %d, g: %d, b: %d\n", *r, *g, *b);
 }
 
-void change_brightness(float *v, int factor)
+void change_brightness(Uint8 *r, Uint8 *g, Uint8 *b)
 {
-    printf("my v: %f\n", *v);
-    *v = (float)M_BRIGHTNESS / 100; // divide by 100 to get a percentage
-    printf("new brightness: %f\n", *v);
+
+    /* Factor to increase the brightness by. 1->255 */
+    int factor = 0;
+    float ratio = ((float)M_BRIGHTNESS - 50.0) / 50.0;
+    // printf("ratio: %f\n", ratio);
+    factor = (int) (ratio * 255);
+
+    /* Modify red */
+    if ((*r + factor) > 255)
+    {
+        *r = 255;
+    }
+    else if ((*r + factor) < 0)
+    {
+        *r = 0;
+    }
+    else
+    {
+        *r += factor;
+    }
+
+    /* Modify green */
+    if ((*g + factor) > 255)
+    {
+        *g = 255;
+    }
+    else if ((*g + factor) < 0)
+    {
+        *g = 0;
+    }
+    else
+    {
+        *g += factor;
+    }
+
+    /* Modify blue */
+    if ((*b + factor) > 255)
+    {
+        *b = 255;
+    }
+    else if ((*b + factor) < 0)
+    {
+        *b = 0;
+    }
+    else
+    {
+        *b += factor;
+    }
 }
 
 void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
@@ -196,27 +233,28 @@ void manipulate_image(Uint8 *r, Uint8 *g, Uint8 *b)
     float s = 0;
     float v = 0;
 
-    printf("original rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
+    // printf("original rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
 
     /* Convert RGB to HSB */
     RGB_to_HSV(*r, *g, *b, &h, &s, &v);
-    printf("original hsv: h: %f, s: %f, v: %f\n", h, s, v);
+    // printf("original hsv: h: %f, s: %f, v: %f\n", h, s, v);
 
     /* Change brightness if we need to */
     if (M_BRIGHTNESS != 50)
     {
-        change_brightness(&v, M_BRIGHTNESS);
+        change_brightness(&(*r), &(*g), &(*b));
     }
-    printf("updated hsv: h: %f, s: %f, v: %f\n", h, s, v);
+    // printf("updated hsv: h: %f, s: %f, v: %f\n", h, s, v);
 
     /* Change contrast if we need to */
 
     /* Change saturation if we need to */
 
 
-     // Convert HSB back to RGB 
-    HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
-    printf("updated rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
+     // Convert HSB back to RGB
+    // HSV_to_RGB(&h, &s, &v, &(*r), &(*g), &(*b));
+    // printf("updated rgb: r: %d, g: %d, b: %d\n", *r, *g, *b);
+    // exit(1);
 
 }
 
@@ -246,8 +284,8 @@ int display_frame()
                 manipulate_image(&red_channel, &green_channel, &blue_channel);
             }
 
-            printf("FINAL rgb: r: %d, g: %d, b: %d\n", red_channel, green_channel, blue_channel);
-            exit(1);
+            // printf("FINAL rgb: r: %d, g: %d, b: %d\n", red_channel, green_channel, blue_channel);
+            // exit(1);
 
             /* Draw the pixel with the correct colours */
             *p=SDL_MapRGB(SCREEN_SURFACE->format, red_channel, green_channel, blue_channel);
@@ -507,6 +545,28 @@ void frame_update_loop(void *arg)
     remove_frame_separator();
 }
 
+int check_for_comment_line()
+{
+    char c = 0;
+
+    /* We have found a comment line */
+    if ((c = fgetc(stdin)) == '#')
+    {
+        /* Read in the entire comment line */
+        while ((c = fgetc(stdin)) != '\n')
+        {
+            // do nothing important
+        }
+
+        /* There is possibly another comment line after this */
+        return 1;
+    }
+
+    /* There was no comment line, so put back the character */
+    ungetc(c, stdin);
+    return 0;
+}
+
 /* Read and process the frame header */
 int read_ppm_header()
 {
@@ -532,6 +592,12 @@ int read_ppm_header()
 
     /* Free our memory */
     free(line_buffer);
+
+    /* Check for comments */
+    // while (check_for_comment_line() == 1)
+    // {
+    //     printf("Removing comment line.\n");
+    // }
 
     /* Allocate memory for the width and the height. */
     line_buffer_size = 6;
@@ -560,6 +626,12 @@ int read_ppm_header()
     /* Free our memory */
     free(line_buffer);
 
+    /* Check for comments */
+    // while (check_for_comment_line() == 1)
+    // {
+    //     printf("Removing comment line.\n");
+    // }
+
     /* Allocate memory for the max value - we are expecting 255. */
     line_buffer_size = 4;
     line_buffer = (char *) malloc(line_buffer_size * sizeof(char));
@@ -579,6 +651,12 @@ int read_ppm_header()
 
     /* Free our memory */
     free(line_buffer);
+
+    /* Check for comments */
+    // while (check_for_comment_line() == 1)
+    // {
+    //     printf("Removing comment line.\n");
+    // }
 
     return 0; // success!
 }
@@ -732,3 +810,60 @@ int peek_next_char()
 
     return 0; // success!
 }
+
+// int i = 0;
+    // float f = 0.0;
+    // float p = 0.0;
+    // float q = 0.0;
+    // float t = 0.0;
+
+    // /* If the image is achromatic (i.e. grey) */
+    // if (*s == 0)
+    // {
+    //     *r = (Uint8)*v;
+    //     *g = (Uint8)*v;
+    //     *b = (Uint8)*v;
+    //     // return; // skip processing!
+    // }
+
+    // *h /= 60.0;
+    // i = (int)floorf(*h);
+    // printf("i: %d\n", i);
+    // f = *h - i;
+    // p = *v * (1 - *s);
+    // q = *v * (1 - *s * f);
+    // t = *v * (1 - *s * (1 - f));
+
+    // switch(i)
+    // {
+    //     case 0:
+    //         r_float = *v;
+    //         g_float = t;
+    //         b_float = p;
+    //         break;
+    //     case 1:
+    //         r_float = q;
+    //         g_float = *v;
+    //         b_float = p;
+    //         break;
+    //     case 2:
+    //         r_float = p;
+    //         g_float = *v;
+    //         b_float = t;
+    //         break;
+    //     case 3:
+    //         r_float = p;
+    //         g_float = q;
+    //         b_float = *v;
+    //         break;
+    //     case 4:
+    //         r_float = t;
+    //         g_float = p;
+    //         b_float = *v;
+    //         break;
+    //     default:
+    //         r_float = *v;
+    //         g_float = p;
+    //         b_float = q;
+    //         break;
+    // }
